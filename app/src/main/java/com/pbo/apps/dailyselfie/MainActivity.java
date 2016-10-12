@@ -14,7 +14,7 @@ import android.view.MenuItem;
 public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
-    MainActivityFragment mImageDisplayFragment;
+    ImageDisplayFragment mImageDisplayFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mImageDisplayFragment = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+        mImageDisplayFragment = (ImageDisplayFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
     }
 
     // Get some handler on the device to take a photo, if such a thing exists

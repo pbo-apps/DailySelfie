@@ -11,10 +11,10 @@ import android.view.ViewGroup;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment {
+public class ImageDisplayFragment extends Fragment {
     AppCompatImageView mImageView;
 
-    public MainActivityFragment() {
+    public ImageDisplayFragment() {
     }
 
     @Override
