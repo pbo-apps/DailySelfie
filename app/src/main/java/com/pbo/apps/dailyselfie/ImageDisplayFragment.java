@@ -2,12 +2,17 @@ package com.pbo.apps.dailyselfie;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatImageView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -45,7 +50,14 @@ public class ImageDisplayFragment extends Fragment {
         // Get the dimensions of the bitmap
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
         bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(photoPath, bmOptions);
+        try {
+            InputStream in = getContext().getContentResolver().openInputStream(
+                    Uri.parse(photoPath));
+            BitmapFactory.decodeStream(in, null, bmOptions);
+        } catch (FileNotFoundException e) {
+            Toast.makeText(getContext(), R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
+            return;
+        }
         int photoW = bmOptions.outWidth;
         int photoH = bmOptions.outHeight;
 
@@ -56,7 +68,15 @@ public class ImageDisplayFragment extends Fragment {
         bmOptions.inJustDecodeBounds = false;
         bmOptions.inSampleSize = scaleFactor;
 
-        Bitmap bitmap = BitmapFactory.decodeFile(photoPath, bmOptions);
+        Bitmap bitmap;
+        try {
+            InputStream in = getContext().getContentResolver().openInputStream(
+                    Uri.parse(photoPath));
+            bitmap = BitmapFactory.decodeStream(in, null, bmOptions);
+        } catch (FileNotFoundException e) {
+            Toast.makeText(getContext(), R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
+            return;
+        }
         mImageView.setImageBitmap(bitmap);
     }
 }
