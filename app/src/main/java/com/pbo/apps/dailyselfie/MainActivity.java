@@ -10,11 +10,16 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
     ImageDisplayFragment mImageDisplayFragment;
+    ImageFileHelper mImageFileHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-       FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -32,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mImageDisplayFragment = (ImageDisplayFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+
+        mImageFileHelper = new ImageFileHelper();
     }
 
     // Get some handler on the device to take a photo, if such a thing exists
@@ -45,9 +52,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            mImageDisplayFragment.setImage(imageBitmap);
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = mImageFileHelper.createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                Toast.makeText(getApplicationContext(), R.string.error_create_file, Toast.LENGTH_LONG).show();
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Bundle extras = data.getExtras();
+                Bitmap imageBitmap = (Bitmap) extras.get("data");
+                mImageDisplayFragment.setImage(imageBitmap);
+            }
         }
     }
 
