@@ -1,6 +1,10 @@
 package com.pbo.apps.dailyselfie;
 
+import android.content.Context;
+import android.net.Uri;
 import android.os.Environment;
+import android.support.v4.content.FileProvider;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,9 +27,31 @@ class ImageFileHelper {
 
     private String mCurrentPhotoPath;
 
+    // Tries to create a file, and if successful returns a URI for it from the fileprovider
+    // Returns null otherwise
+    Uri createPhotoFileURI(Context context) {
+        Uri photoURI = null;
+        File photoFile = null;
+
+        try {
+            photoFile = createImageFile();
+        } catch (IOException ex) {
+            // Error occurred while creating the File
+            Toast.makeText(context, R.string.error_create_file, Toast.LENGTH_LONG).show();
+        }
+
+        if (photoFile != null) {
+            photoURI = FileProvider.getUriForFile(context,
+                    "com.pbo.apps.fileprovider",
+                    photoFile);
+        }
+
+        return photoURI;
+    }
+
     // Creates a temporary file in public storage with a unique filename
     // NOTE: This requires permission WRITE_EXTERNAL_STORAGE
-    File createImageFile() throws IOException {
+    private File createImageFile() throws IOException {
         // Create an image file name
         getDateTimeInstance();
 
