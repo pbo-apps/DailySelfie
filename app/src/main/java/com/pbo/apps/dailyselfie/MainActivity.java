@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
             // Continue only if we successfully got a URI to a newly created file
             if (photoURI != null) {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                mImageFileHelper.grantURIPermissionsForIntent(this, takePictureIntent, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
