@@ -38,7 +38,7 @@ class ImageFileHelper {
         File photoFile = null;
 
         try {
-            photoFile = createImageFile();
+            photoFile = createImageFile(context);
         } catch (IOException ex) {
             // Error occurred while creating the File
             Toast.makeText(context, R.string.error_create_file, Toast.LENGTH_LONG).show();
@@ -55,13 +55,14 @@ class ImageFileHelper {
 
     // Creates a temporary file in public storage with a unique filename
     // NOTE: This requires permission WRITE_EXTERNAL_STORAGE
-    private File createImageFile() throws IOException {
+    private File createImageFile(Context context) throws IOException {
         // Create an image file name
         getDateTimeInstance();
 
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.UK).format(new Date());
         String imageFileName = SELFIE_FILE_PREFIX + "_" + timeStamp;
-        File storageDir = getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File storageDir = getSelfieStorageDirectory(context);
+
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
@@ -73,10 +74,24 @@ class ImageFileHelper {
         return image;
     }
 
+    // Get the directory to store our selfie images in, and create it if it doesn't already exist
+    private File getSelfieStorageDirectory(Context context) throws IOException  {
+        File externalStorageDir = getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+
+        File selfieDir = new File(externalStorageDir, context.getResources().getString(R.string.app_name));
+
+        // Throw if the selfie directory doesn't already exist and cannot be created
+        if (!selfieDir.mkdir() && !selfieDir.isDirectory())
+            throw new IOException("Failed to create SELFIE storage directory");
+
+        return selfieDir;
+    }
+
     String getCurrentPhotoPath() {
         return mCurrentPhotoPath;
     }
 
+    // Ensure that a particular intent has read and write access to a given URI
     void grantURIPermissionsForIntent(Context context, Intent takePictureIntent, Uri photoURI) {
         List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(takePictureIntent, PackageManager.MATCH_DEFAULT_ONLY);
         for (ResolveInfo resolveInfo : resInfoList) {

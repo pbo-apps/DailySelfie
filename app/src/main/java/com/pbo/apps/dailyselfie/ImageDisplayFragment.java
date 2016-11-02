@@ -15,7 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 /**
- * A placeholder fragment containing a simple view.
+ * Fragment class to handle setting an image into a view
  */
 public class ImageDisplayFragment extends Fragment {
     AppCompatImageView mImageView;
@@ -28,7 +28,6 @@ public class ImageDisplayFragment extends Fragment {
             Bundle savedInstanceStatem) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
-        // TODO: Figure out why the image view has 0 height and width
         mImageView = (AppCompatImageView) view.findViewById(R.id.image);
 
         return view;
