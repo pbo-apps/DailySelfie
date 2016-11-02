@@ -82,7 +82,7 @@ class ImageFileHelper {
 
         // Throw if the selfie directory doesn't already exist and cannot be created
         if (!selfieDir.mkdir() && !selfieDir.isDirectory())
-            throw new IOException("Failed to create SELFIE storage directory");
+            throw new IOException("Failed to create SELFIE storage directory: " + selfieDir.getPath());
 
         return selfieDir;
     }
