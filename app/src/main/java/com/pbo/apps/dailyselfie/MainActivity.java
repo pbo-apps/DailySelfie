@@ -1,6 +1,7 @@
 package com.pbo.apps.dailyselfie;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -56,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            mImageDisplayFragment.setPic(mImageFileHelper.getCurrentPhotoPath());
+            // TODO - Figure out why photo path is null sometimes in debug
+            mImageDisplayFragment.addThumbnailToGallery(mImageFileHelper.getCurrentPhotoPath());
         }
     }
 

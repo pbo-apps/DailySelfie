@@ -12,6 +12,6 @@
     tools:showIn="@layout/activity_main"
     tools:context="com.pbo.apps.dailyselfie.ImageDisplayFragment">
 
-    <include layout="@layout/gallery_item_layout"/>
+    <include layout="@layout/gallery_layout"/>
 
 </RelativeLayout>
