@@ -4,13 +4,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.content.FileProvider;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -89,6 +93,50 @@ class ImageFileHelper {
 
     String getCurrentPhotoPath() {
         return mCurrentPhotoPath;
+    }
+
+    // Get the desired scaling factor for use with setting the bitmap in an image view
+    static int calculateScaledBitmapOption(Context context, String photoPath, int targetW, int targetH) {
+        // Don't attempt to do anything if the view is one-dimensional
+        if (targetW == 0 || targetH == 0)
+            return 0;
+
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        try {
+            InputStream in = context.getContentResolver().openInputStream(
+                    Uri.parse(photoPath));
+            BitmapFactory.decodeStream(in, null, bmOptions);
+        } catch (FileNotFoundException e) {
+            Toast.makeText(context, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
+            return 0;
+        }
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+        // Determine how much to scale down the image
+        return Math.min(photoW/targetW, photoH/targetH);
+    }
+
+    // Get the desired scaling factor for use with setting the bitmap in an image view
+    static Bitmap scaleBitmap(Context context, String photoPath, int scaleFactor) {
+        // Decode the image file into a Bitmap sized to fill the View
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+
+        Bitmap bitmap;
+        try {
+            InputStream in = context.getContentResolver().openInputStream(
+                    Uri.parse(photoPath));
+            bitmap = BitmapFactory.decodeStream(in, null, bmOptions);
+        } catch (FileNotFoundException e) {
+            Toast.makeText(context, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
+            return null;
+        }
+
+        return bitmap;
     }
 
     // Ensure that a particular intent has read and write access to a given URI

@@ -3,6 +3,7 @@ package com.pbo.apps.dailyselfie;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.support.v7.widget.AppCompatImageView;
@@ -46,13 +47,7 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         return mGalleryItems.size();
     }
 
-    public void addThumbnail(String photoPath) {
-        Bitmap thumbImage = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(photoPath), THUMBSIZE, THUMBSIZE);
-        mGalleryItems.add(new GalleryItem(thumbImage));
-        notifyItemInserted(mGalleryItems.size() - 1);
-    }
-
-    void setPic(Context context, String photoPath) {
+    void addImage(Context context, String photoPath) {
         // Warn user if we've lost the photo somewhere along the way
         if (photoPath == null) {
             Toast.makeText(context, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
@@ -63,42 +58,16 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         int targetW = THUMBSIZE; //mImageView.getWidth();
         int targetH = THUMBSIZE; //mImageView.getHeight();
 
-        // Don't attempt to do anything if the view is one-dimensional
-        if (targetW == 0 || targetH == 0)
-            return;
+        Bitmap bitmap = null;
+        int scaleFactor = ImageFileHelper.calculateScaledBitmapOption(context, photoPath, targetW, targetH);
 
-        // Get the dimensions of the bitmap
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        try {
-            InputStream in = context.getContentResolver().openInputStream(
-                    Uri.parse(photoPath));
-            BitmapFactory.decodeStream(in, null, bmOptions);
-        } catch (FileNotFoundException e) {
-            Toast.makeText(context, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
-            return;
+        if (scaleFactor > 0)
+            bitmap = ImageFileHelper.scaleBitmap(context, photoPath, scaleFactor);
+
+        if (bitmap != null) {
+            mGalleryItems.add(new GalleryItem(bitmap));
+            notifyItemInserted(mGalleryItems.size() - 1);
         }
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
-
-        // Determine how much to scale down the image
-        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
-
-        // Decode the image file into a Bitmap sized to fill the View
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-
-        Bitmap bitmap;
-        try {
-            InputStream in = context.getContentResolver().openInputStream(
-                    Uri.parse(photoPath));
-            bitmap = BitmapFactory.decodeStream(in, null, bmOptions);
-        } catch (FileNotFoundException e) {
-            Toast.makeText(context, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
-            return;
-        }
-        mGalleryItems.add(new GalleryItem(bitmap));
-        notifyItemInserted(mGalleryItems.size() - 1);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

@@ -1,24 +1,14 @@
 package com.pbo.apps.dailyselfie;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.ThumbnailUtils;
-import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Gallery;
-import android.widget.Toast;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
@@ -49,6 +39,6 @@ public class GalleryFragment extends Fragment {
 
     public void addThumbnailToGallery(String photoPath) {
         //mGalleryAdapter.addThumbnail(photoPath);
-        mGalleryAdapter.setPic(getContext(), photoPath);
+        mGalleryAdapter.addImage(getContext(), photoPath);
     }
 }
