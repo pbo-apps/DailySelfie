@@ -11,11 +11,14 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.io.File;
+
 public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
     GalleryFragment mGalleryFragment;
-    ImageFileHelper mImageFileHelper;
+
+    private String mCurrentPhotoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,10 +37,9 @@ public class MainActivity extends AppCompatActivity {
 
         mGalleryFragment = (GalleryFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
 
-        // TODO - Store the state of the file helper...
+        // TODO - Store the state of mCurrentPhotoPath...
         // ...the activity can get destroyed and recreated whilst the user is taking a photo, thus
         // losing the current photo path and causing the crash seen in addThumbnail
-        mImageFileHelper = new ImageFileHelper();
     }
 
     // Get some handler on the device to take a photo, if such a thing exists
@@ -45,12 +47,18 @@ public class MainActivity extends AppCompatActivity {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
-            Uri photoURI = mImageFileHelper.createPhotoFileURI(this);
+            File photoFile = ImageFileHelper.createPhotoFile(this);
 
-            // Continue only if we successfully got a URI to a newly created file
-            if (photoURI != null) {
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                mImageFileHelper.grantURIPermissionsForIntent(this, takePictureIntent, photoURI);
+            // Continue only if we successfully created a file
+            if (photoFile != null) {
+                // Get the image Uri
+                Uri photoUri = ImageFileHelper.getFileUri(this, photoFile);
+                // Store photo path for use later when the camera intent returns
+                mCurrentPhotoPath = ImageFileHelper.getFilePath(photoFile);
+
+                // Ask a local camera to fill in the image for us
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                ImageFileHelper.grantURIPermissionsForIntent(this, takePictureIntent, photoUri);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
@@ -59,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            mGalleryFragment.addThumbnailToGallery(mImageFileHelper.getCurrentPhotoPath());
+            mGalleryFragment.addThumbnailToGallery(mCurrentPhotoPath);
         }
     }
 

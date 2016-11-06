@@ -33,12 +33,9 @@ import static java.text.DateFormat.getDateTimeInstance;
 class ImageFileHelper {
     private static final String SELFIE_FILE_PREFIX = "SELFIE";
 
-    private String mCurrentPhotoPath;
-
-    // Tries to create a file, and if successful returns a URI for it from the fileprovider
+    // Tries to create a file, and if successful
     // Returns null otherwise
-    Uri createPhotoFileURI(Context context) {
-        Uri photoURI = null;
+    static File createPhotoFile(Context context) {
         File photoFile = null;
 
         try {
@@ -48,18 +45,12 @@ class ImageFileHelper {
             Toast.makeText(context, R.string.error_create_file, Toast.LENGTH_LONG).show();
         }
 
-        if (photoFile != null) {
-            photoURI = FileProvider.getUriForFile(context,
-                    "com.pbo.apps.fileprovider",
-                    photoFile);
-        }
-
-        return photoURI;
+        return photoFile;
     }
 
     // Creates a temporary file in public storage with a unique filename
     // NOTE: This requires permission WRITE_EXTERNAL_STORAGE
-    private File createImageFile(Context context) throws IOException {
+    static private File createImageFile(Context context) throws IOException {
         // Create an image file name
         getDateTimeInstance();
 
@@ -67,19 +58,27 @@ class ImageFileHelper {
         String imageFileName = SELFIE_FILE_PREFIX + "_" + timeStamp;
         File storageDir = getImageStorageDirectory(context);
 
-        File image = File.createTempFile(
+        return File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
+    }
 
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
-        return image;
+    // Gets a file path for use with ACTION_VIEW intents
+    static String getFilePath(File file) {
+        return "file:" + file.getAbsolutePath();
+    }
+
+    // Returns a URI for it from the fileprovider
+    static Uri getFileUri(Context context, File file) {
+        return FileProvider.getUriForFile(context,
+                    "com.pbo.apps.fileprovider",
+                    file);
     }
 
     // Get the directory to store our images in, and create it if it doesn't already exist
-    private File getImageStorageDirectory(Context context) throws IOException  {
+    static private File getImageStorageDirectory(Context context) throws IOException  {
         File externalStorageDir = getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 
         File imageDir = new File(externalStorageDir, context.getResources().getString(R.string.app_name));
@@ -89,10 +88,6 @@ class ImageFileHelper {
             throw new IOException("Failed to create image storage directory: " + imageDir.getPath());
 
         return imageDir;
-    }
-
-    String getCurrentPhotoPath() {
-        return mCurrentPhotoPath;
     }
 
     // Get the desired scaling factor for use with setting the bitmap in an image view
@@ -140,7 +135,7 @@ class ImageFileHelper {
     }
 
     // Ensure that a particular intent has read and write access to a given URI
-    void grantURIPermissionsForIntent(Context context, Intent takePictureIntent, Uri photoURI) {
+    static void grantURIPermissionsForIntent(Context context, Intent takePictureIntent, Uri photoURI) {
         List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(takePictureIntent, PackageManager.MATCH_DEFAULT_ONLY);
         for (ResolveInfo resolveInfo : resInfoList) {
             String packageName = resolveInfo.activityInfo.packageName;
