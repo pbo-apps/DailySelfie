@@ -15,6 +15,7 @@ import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final String CURRENT_PHOTO_PATH_KEY = "mCurrentPhotoPath";
 
     GalleryFragment mGalleryFragment;
 
@@ -36,10 +37,22 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mGalleryFragment = (GalleryFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+    }
 
-        // TODO - Store the state of mCurrentPhotoPath...
-        // ...the activity can get destroyed and recreated whilst the user is taking a photo, thus
-        // losing the current photo path and causing the crash seen in addThumbnail
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        if (mCurrentPhotoPath != null) {
+            savedInstanceState.putString(CURRENT_PHOTO_PATH_KEY, mCurrentPhotoPath);
+        }
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        if (savedInstanceState.containsKey(CURRENT_PHOTO_PATH_KEY)) {
+            mCurrentPhotoPath = savedInstanceState.getString(CURRENT_PHOTO_PATH_KEY);
+        }
+        super.onRestoreInstanceState(savedInstanceState);
     }
 
     // Get some handler on the device to take a photo, if such a thing exists
