@@ -7,13 +7,13 @@ import android.graphics.Bitmap;
  */
 
 class GalleryItem {
-    private Bitmap mImageBitmap;
+    private String mImagePath;
 
-    GalleryItem(Bitmap imageBitmap) {
-        mImageBitmap = imageBitmap;
+    GalleryItem(String imagePath) {
+        mImagePath = imagePath;
     }
 
-    Bitmap getImageBitmap() {
-        return mImageBitmap;
+    String getImagePath() {
+        return mImagePath;
     }
 }

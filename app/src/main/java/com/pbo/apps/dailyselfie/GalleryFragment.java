@@ -30,7 +30,7 @@ public class GalleryFragment extends Fragment {
         mGalleryView = (RecyclerView) view.findViewById(R.id.gallery_view);
 
         mGalleryView.setLayoutManager(new LinearLayoutManager(getContext()));
-        mGalleryAdapter = new GalleryAdapter(mGalleryItems);
+        mGalleryAdapter = new GalleryAdapter(getContext(), mGalleryItems);
         mGalleryView.setAdapter(mGalleryAdapter);
         mGalleryView.setItemAnimator(new DefaultItemAnimator());
 
@@ -38,7 +38,6 @@ public class GalleryFragment extends Fragment {
     }
 
     public void addThumbnailToGallery(String photoPath) {
-        //mGalleryAdapter.addThumbnail(photoPath);
-        mGalleryAdapter.addImage(getContext(), photoPath);
+        mGalleryAdapter.addImage(photoPath);
     }
 }
