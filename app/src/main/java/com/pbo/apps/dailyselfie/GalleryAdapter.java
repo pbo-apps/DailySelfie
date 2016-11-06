@@ -53,6 +53,12 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     }
 
     void setPic(Context context, String photoPath) {
+        // Warn user if we've lost the photo somewhere along the way
+        if (photoPath == null) {
+            Toast.makeText(context, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
+            return;
+        }
+
         // Get the dimensions of the View
         int targetW = THUMBSIZE; //mImageView.getWidth();
         int targetH = THUMBSIZE; //mImageView.getHeight();

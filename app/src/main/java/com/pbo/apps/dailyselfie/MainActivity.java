@@ -34,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
 
         mGalleryFragment = (GalleryFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
 
+        // TODO - Store the state of the file helper...
+        // ...the activity can get destroyed and recreated whilst the user is taking a photo, thus
+        // losing the current photo path and causing the crash seen in addThumbnail
         mImageFileHelper = new ImageFileHelper();
     }
 
@@ -56,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            // TODO - Figure out why photo path is null sometimes in debug
             mGalleryFragment.addThumbnailToGallery(mImageFileHelper.getCurrentPhotoPath());
         }
     }
