@@ -22,14 +22,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
- * Fragment class to handle setting an image into a view
+ * Fragment class to handle displaying a grid of images
  */
-public class ImageDisplayFragment extends Fragment {
+public class GalleryFragment extends Fragment {
     RecyclerView mGalleryView;
     GalleryAdapter mGalleryAdapter;
     ArrayList<GalleryItem> mGalleryItems = new ArrayList<>();
 
-    public ImageDisplayFragment() {
+    public GalleryFragment() {
     }
 
     @Override

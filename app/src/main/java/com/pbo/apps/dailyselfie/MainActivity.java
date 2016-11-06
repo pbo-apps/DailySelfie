@@ -1,7 +1,6 @@
 package com.pbo.apps.dailyselfie;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -15,7 +14,7 @@ import android.view.MenuItem;
 public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
-    ImageDisplayFragment mImageDisplayFragment;
+    GalleryFragment mGalleryFragment;
     ImageFileHelper mImageFileHelper;
 
     @Override
@@ -33,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mImageDisplayFragment = (ImageDisplayFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+        mGalleryFragment = (GalleryFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
 
         mImageFileHelper = new ImageFileHelper();
     }
@@ -58,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             // TODO - Figure out why photo path is null sometimes in debug
-            mImageDisplayFragment.addThumbnailToGallery(mImageFileHelper.getCurrentPhotoPath());
+            mGalleryFragment.addThumbnailToGallery(mImageFileHelper.getCurrentPhotoPath());
         }
     }
 
