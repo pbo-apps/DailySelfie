@@ -61,7 +61,7 @@ class ImageFileHelper {
 
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.UK).format(new Date());
         String imageFileName = SELFIE_FILE_PREFIX + "_" + timeStamp;
-        File storageDir = getSelfieStorageDirectory(context);
+        File storageDir = getImageStorageDirectory(context);
 
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
@@ -74,17 +74,17 @@ class ImageFileHelper {
         return image;
     }
 
-    // Get the directory to store our selfie images in, and create it if it doesn't already exist
-    private File getSelfieStorageDirectory(Context context) throws IOException  {
+    // Get the directory to store our images in, and create it if it doesn't already exist
+    private File getImageStorageDirectory(Context context) throws IOException  {
         File externalStorageDir = getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 
-        File selfieDir = new File(externalStorageDir, context.getResources().getString(R.string.app_name));
+        File imageDir = new File(externalStorageDir, context.getResources().getString(R.string.app_name));
 
-        // Throw if the selfie directory doesn't already exist and cannot be created
-        if (!selfieDir.mkdir() && !selfieDir.isDirectory())
-            throw new IOException("Failed to create SELFIE storage directory: " + selfieDir.getPath());
+        // Throw if the image directory doesn't already exist and cannot be created
+        if (!imageDir.mkdir() && !imageDir.isDirectory())
+            throw new IOException("Failed to create image storage directory: " + imageDir.getPath());
 
-        return selfieDir;
+        return imageDir;
     }
 
     String getCurrentPhotoPath() {
