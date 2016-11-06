@@ -17,9 +17,19 @@ import java.util.ArrayList;
 public class GalleryFragment extends Fragment {
     RecyclerView mGalleryView;
     GalleryAdapter mGalleryAdapter;
-    ArrayList<GalleryItem> mGalleryItems = new ArrayList<>();
+    ArrayList<GalleryItem> mGalleryItems;
 
     public GalleryFragment() {
+        if (mGalleryItems == null) {
+            mGalleryItems = new ArrayList<>();
+        }
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // retain this fragment
+        setRetainInstance(true);
     }
 
     @Override
