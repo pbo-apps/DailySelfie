@@ -16,7 +16,7 @@ import java.util.ArrayList;
  */
 
 class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
-    private static final int THUMBSIZE = 96;
+    private static int mImageSize = 96;
     private Context mContext;
     private ArrayList<GalleryItem> mGalleryItems;
 
@@ -30,6 +30,10 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         View galleryView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.gallery_item_layout, parent, false);
 
+        mImageSize = parent.getMeasuredWidth() /
+                mContext.getResources().getInteger(R.integer.grid_layout_items_per_row);
+        galleryView.setMinimumHeight(mImageSize);
+
         return new ViewHolder(galleryView);
     }
 
@@ -39,8 +43,8 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         String photoPath = mGalleryItems.get(position).getImagePath();
 
         // Get the dimensions of the View
-        int targetW = THUMBSIZE; //mImageView.getWidth();
-        int targetH = THUMBSIZE; //mImageView.getHeight();
+        int targetW = mImageSize;
+        int targetH = mImageSize;
 
         Bitmap bitmap = null;
         int scaleFactor = ImageFileHelper.calculateScaledBitmapOption(mContext, photoPath, targetW, targetH);

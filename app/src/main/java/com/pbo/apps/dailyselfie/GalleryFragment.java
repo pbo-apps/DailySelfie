@@ -3,6 +3,7 @@ package com.pbo.apps.dailyselfie;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -39,7 +40,8 @@ public class GalleryFragment extends Fragment {
 
         mGalleryView = (RecyclerView) view.findViewById(R.id.gallery_view);
 
-        mGalleryView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mGalleryView.setLayoutManager(new GridLayoutManager(getContext(),
+                getResources().getInteger(R.integer.grid_layout_items_per_row)));
         mGalleryAdapter = new GalleryAdapter(getContext(), mGalleryItems);
         mGalleryView.setAdapter(mGalleryAdapter);
         mGalleryView.setItemAnimator(new DefaultItemAnimator());
