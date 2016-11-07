@@ -10,16 +10,21 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final String CURRENT_PHOTO_PATH_KEY = "mCurrentPhotoPath";
+    private static final String CURRENT_PHOTO_URI_KEY = "mCurrentPhotoUri";
 
     GalleryFragment mGalleryFragment;
 
     private String mCurrentPhotoPath;
+    private Uri mCurrentPhotoUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
         if (mCurrentPhotoPath != null) {
             savedInstanceState.putString(CURRENT_PHOTO_PATH_KEY, mCurrentPhotoPath);
         }
+        if (mCurrentPhotoUri != null) {
+            savedInstanceState.putParcelable(CURRENT_PHOTO_URI_KEY, mCurrentPhotoUri);
+        }
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -51,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         if (savedInstanceState.containsKey(CURRENT_PHOTO_PATH_KEY)) {
             mCurrentPhotoPath = savedInstanceState.getString(CURRENT_PHOTO_PATH_KEY);
+        }
+        if (savedInstanceState.containsKey(CURRENT_PHOTO_URI_KEY)) {
+            mCurrentPhotoUri = savedInstanceState.getParcelable(CURRENT_PHOTO_URI_KEY);
         }
         super.onRestoreInstanceState(savedInstanceState);
     }
@@ -65,13 +76,13 @@ public class MainActivity extends AppCompatActivity {
             // Continue only if we successfully created a file
             if (photoFile != null) {
                 // Get the image Uri
-                Uri photoUri = ImageFileHelper.getFileUri(this, photoFile);
+                mCurrentPhotoUri = ImageFileHelper.getFileUri(this, photoFile);
                 // Store photo path for use later when the camera intent returns
                 mCurrentPhotoPath = ImageFileHelper.getFilePath(photoFile);
 
                 // Ask a local camera to fill in the image for us
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-                ImageFileHelper.grantURIPermissionsForIntent(this, takePictureIntent, photoUri);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCurrentPhotoUri);
+                ImageFileHelper.grantURIPermissionsForIntent(this, takePictureIntent, mCurrentPhotoUri);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
@@ -79,9 +90,29 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            mGalleryFragment.addThumbnailToGallery(mCurrentPhotoPath);
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            if (resultCode == RESULT_OK) {
+                dispatchCropPictureIntent();
+            }
         }
+        else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                mGalleryFragment.addThumbnailToGallery(mCurrentPhotoPath);
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                Exception error = result.getError();
+                Toast.makeText(this, error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    // Sends the user to the crop activity to ensure they return a square photo
+    private void dispatchCropPictureIntent() {
+        CropImage.activity(mCurrentPhotoUri)
+                .setFixAspectRatio(true)
+                .setAspectRatio(1, 1)
+                .setOutputUri(mCurrentPhotoUri)
+                .start(this);
     }
 
     @Override

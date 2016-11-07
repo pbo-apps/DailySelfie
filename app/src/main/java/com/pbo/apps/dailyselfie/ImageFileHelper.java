@@ -91,7 +91,7 @@ class ImageFileHelper {
     }
 
     // Get the desired scaling factor for use with setting the bitmap in an image view
-    static int calculateScaledBitmapOption(Context context, String photoPath, int targetW, int targetH) {
+    static int calculateBitmapScaleFactor(Context context, String photoPath, int targetW, int targetH) {
         // Don't attempt to do anything if the view is one-dimensional
         if (targetW == 0 || targetH == 0)
             return 0;
