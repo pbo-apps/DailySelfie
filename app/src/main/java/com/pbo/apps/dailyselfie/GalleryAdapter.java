@@ -1,15 +1,13 @@
 package com.pbo.apps.dailyselfie;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
-
-import java.util.ArrayList;
 
 /**
  * Implementation of adapter to put images into a gallery using a RecyclerView
@@ -18,11 +16,11 @@ import java.util.ArrayList;
 class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     private static final int mImageSize = 100;
     private Context mContext;
-    private ArrayList<GalleryItem> mGalleryItems;
+    private GalleryItemCursor mCursor;
 
-    GalleryAdapter(Context context, ArrayList<GalleryItem> galleryItems) {
+    GalleryAdapter(Context context) {
         mContext = context;
-        mGalleryItems = galleryItems;
+        mCursor = new GalleryItemCursor(null);
     }
 
     @Override
@@ -35,8 +33,10 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
+        mCursor.moveToPosition(position);
+
         // Find the gallery item
-        String photoPath = mGalleryItems.get(position).getImagePath();
+        String photoPath = mCursor.getImagePath();
 
         // Get the dimensions of the View
         int targetW = mImageSize;
@@ -55,20 +55,23 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return mGalleryItems.size();
+        return mCursor == null ? 0 : mCursor.getCount();
     }
 
-    void addImage(String photoPath) {
-        // Warn user if we've lost the photo somewhere along the way
-        if (photoPath == null) {
-            Toast.makeText(mContext, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
-            return;
+    // Replace the existing cursor in the cursor wrapper
+    Cursor swapCursor(Cursor cursor) {
+        if (mCursor.getWrappedCursor() == cursor) {
+            return null;
         }
-
-        mGalleryItems.add(new GalleryItem(photoPath));
-        notifyItemInserted(mGalleryItems.size() - 1);
+        Cursor oldCursor = mCursor.getWrappedCursor();
+        mCursor = new GalleryItemCursor(cursor);
+        if (cursor != null) {
+            notifyDataSetChanged();
+        }
+        return oldCursor;
     }
 
+    // ViewHolder implementation to reduce view creation/deletion
     static class ViewHolder extends RecyclerView.ViewHolder {
         AppCompatImageView mImageView;
 

@@ -67,7 +67,11 @@ class ImageFileHelper {
 
     // Gets a file path for use with ACTION_VIEW intents
     static String getFilePath(File file) {
-        return "file:" + file.getAbsolutePath();
+        return getFilePath(file.getAbsolutePath());
+    }
+
+    static String getFilePath(String absFilePath) {
+        return "file:" + absFilePath;
     }
 
     // Returns a URI for it from the fileprovider
@@ -78,7 +82,7 @@ class ImageFileHelper {
     }
 
     // Get the directory to store our images in, and create it if it doesn't already exist
-    static private File getImageStorageDirectory(Context context) throws IOException  {
+    static File getImageStorageDirectory(Context context) throws IOException  {
         File externalStorageDir = getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 
         File imageDir = new File(externalStorageDir, context.getResources().getString(R.string.app_name));
