@@ -98,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
         else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
-                mGalleryFragment.addThumbnailToGallery(mCurrentPhotoPath);
+                // Signal the cursor to update the gallery
+                sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(mCurrentPhotoPath)));
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
                 Toast.makeText(this, error.getMessage(), Toast.LENGTH_SHORT).show();
