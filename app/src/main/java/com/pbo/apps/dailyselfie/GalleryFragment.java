@@ -41,7 +41,7 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_main, container, false);
+        View view = inflater.inflate(R.layout.gallery_layout, container, false);
 
         mGalleryView = (RecyclerView) view.findViewById(R.id.gallery_view);
 
