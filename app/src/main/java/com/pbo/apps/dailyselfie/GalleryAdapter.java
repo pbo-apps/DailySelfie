@@ -1,8 +1,10 @@
 package com.pbo.apps.dailyselfie;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -36,7 +38,7 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         mCursor.moveToPosition(position);
 
         // Find the gallery item
-        String photoPath = mCursor.getImagePath();
+        final String photoPath = mCursor.getImagePath();
 
         // Get the dimensions of the View
         int targetW = mImageSize;
@@ -50,7 +52,29 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
 
         if (bitmap != null) {
             viewHolder.mImageView.setImageBitmap(bitmap);
+            viewHolder.mImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    startImageActivity(photoPath, Intent.ACTION_VIEW);
+
+                }
+            });
+            viewHolder.mImageView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    startImageActivity(photoPath, Intent.ACTION_EDIT);
+                    return true;
+                }
+            });
         }
+    }
+
+    // Start an activity to do something with this image file
+    private void startImageActivity(String photoPath, String action) {
+        Intent intentViewImage = new Intent()
+                .setAction(action)
+                .setDataAndType(Uri.parse(photoPath), "image/*");
+        mContext.startActivity(intentViewImage);
     }
 
     @Override
