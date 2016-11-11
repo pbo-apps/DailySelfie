@@ -55,8 +55,7 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
             viewHolder.mImageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    startImageActivity(photoPath, Intent.ACTION_VIEW);
-
+                    ((MainActivity) mContext).viewImage(photoPath);
                 }
             });
             viewHolder.mImageView.setOnLongClickListener(new View.OnLongClickListener() {

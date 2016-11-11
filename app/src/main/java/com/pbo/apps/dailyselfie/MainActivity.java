@@ -38,12 +38,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: Reinstate take picture, and move image viewer fragment to gallery item onClick
-                //dispatchTakePictureIntent();
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, mImageViewerFragment)
-                        .addToBackStack(null)
-                        .commit();
+                dispatchTakePictureIntent();
             }
         });
 
@@ -124,6 +119,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Sends the user to the crop activity to ensure they return a square photo
+    private void dispatchCropPictureIntent() {
+        CropImage.activity(mCurrentPhotoUri)
+                .setFixAspectRatio(true)
+                .setAspectRatio(1, 1)
+                .setOutputUri(mCurrentPhotoUri)
+                .start(this);
+    }
+
+    // Switch in the image viewer fragment and display referenced image file
+    void viewImage(String photoPath) {
+        if (mImageViewerFragment == null) {
+            mImageViewerFragment = new ImageViewerFragment();
+        }
+        Bundle args = new Bundle();
+        args.putString(ImageViewerFragment.ARG_IMAGE_PATH, photoPath);
+        mImageViewerFragment.setArguments(args);
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, mImageViewerFragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
@@ -141,15 +160,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    // Sends the user to the crop activity to ensure they return a square photo
-    private void dispatchCropPictureIntent() {
-        CropImage.activity(mCurrentPhotoUri)
-                .setFixAspectRatio(true)
-                .setAspectRatio(1, 1)
-                .setOutputUri(mCurrentPhotoUri)
-                .start(this);
     }
 
     @Override

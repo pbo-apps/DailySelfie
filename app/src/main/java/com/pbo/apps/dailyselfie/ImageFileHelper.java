@@ -115,7 +115,10 @@ class ImageFileHelper {
         int photoH = bmOptions.outHeight;
 
         // Determine how much to scale down the image
-        return Math.min(photoW/targetW, photoH/targetH);
+        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+
+        // Default to full size image if the ratio is less than 1
+        return scaleFactor > 0 ? scaleFactor : 1;
     }
 
     // Get the desired scaling factor for use with setting the bitmap in an image view
