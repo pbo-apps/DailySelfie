@@ -1,9 +1,9 @@
 <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/fragment_gallery"
-    android:name="com.pbo.apps.dailyselfie.GalleryFragment"
+    android:id="@+id/fragment_image_viewer"
+    android:name="com.pbo.apps.dailyselfie.ImageViewerFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:layout="@layout/gallery_layout" />
+    tools:layout="@layout/image_viewer_layout" />

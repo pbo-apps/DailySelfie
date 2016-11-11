@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String CURRENT_PHOTO_URI_KEY = "mCurrentPhotoUri";
 
     GalleryFragment mGalleryFragment;
+    ImageViewerFragment mImageViewerFragment;
 
     private String mCurrentPhotoPath;
     private Uri mCurrentPhotoUri;
@@ -41,7 +42,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mGalleryFragment = (GalleryFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+        //mGalleryFragment = (GalleryFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_gallery);
+
+        mImageViewerFragment = (ImageViewerFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_image_viewer);
     }
 
     @Override
