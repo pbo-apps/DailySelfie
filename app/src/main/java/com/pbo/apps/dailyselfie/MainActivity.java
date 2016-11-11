@@ -38,13 +38,45 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dispatchTakePictureIntent();
+                // TODO: Reinstate take picture, and move image viewer fragment to gallery item onClick
+                //dispatchTakePictureIntent();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, mImageViewerFragment)
+                        .addToBackStack(null)
+                        .commit();
             }
         });
 
-        //mGalleryFragment = (GalleryFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_gallery);
+        initialiseFragments(savedInstanceState);
+    }
 
-        mImageViewerFragment = (ImageViewerFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_image_viewer);
+    // Set up the fragments to use in the main content view
+    private void initialiseFragments(Bundle savedInstanceState) {
+        // Check that the activity is using the layout version with
+        // the fragment_container FrameLayout
+        if (findViewById(R.id.fragment_container) != null) {
+
+            // However, if we're being restored from a previous state,
+            // then we don't need to do anything and should return or else
+            // we could end up with overlapping fragments.
+            if (savedInstanceState != null) {
+                return;
+            }
+
+            // Create a new Gallery Fragment to be placed in the activity layout
+            mGalleryFragment = new GalleryFragment();
+
+            // In case this activity was started with special instructions from an
+            // Intent, pass the Intent's extras to the fragment as arguments
+            mGalleryFragment.setArguments(getIntent().getExtras());
+
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragment_container, mGalleryFragment).commit();
+
+            // Create new ImageViewerFragment for use later when viewing images
+            mImageViewerFragment = new ImageViewerFragment();
+        }
     }
 
     @Override
@@ -55,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         if (mCurrentPhotoUri != null) {
             savedInstanceState.putParcelable(CURRENT_PHOTO_URI_KEY, mCurrentPhotoUri);
         }
+        // TODO: Need to save fragments here to prevent crash in image viewer on rotation
         super.onSaveInstanceState(savedInstanceState);
     }
 
