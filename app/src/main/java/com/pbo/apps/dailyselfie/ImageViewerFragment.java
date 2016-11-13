@@ -35,18 +35,24 @@ public class ImageViewerFragment extends Fragment {
 
         mImageView = (AppCompatImageView) view.findViewById(R.id.image_viewer_view);
 
-        // Get the dimensions of the View
-        int targetW = container.getWidth();
-        int targetH = container.getHeight();
+        // Post runnable to display image so that the view is measured before we work out the scale factor
+        mImageView.post(new Runnable() {
+            @Override
+            public void run() {
+                // Get the dimensions of the View
+                int targetW = mImageView.getWidth();
+                int targetH = mImageView.getHeight();
 
-        Bitmap bitmap = null;
-        int scaleFactor = ImageFileHelper.calculateBitmapScaleFactor(getContext(), mImagePath, targetW, targetH);
+                Bitmap bitmap = null;
+                int scaleFactor = ImageFileHelper.calculateBitmapScaleFactor(getContext(), mImagePath, targetW, targetH);
 
-        if (scaleFactor > 0)
-            bitmap = ImageFileHelper.scaleBitmap(getContext(), mImagePath, scaleFactor);
+                if (scaleFactor > 0)
+                    bitmap = ImageFileHelper.scaleBitmap(getContext(), mImagePath, scaleFactor);
 
-        if (bitmap != null)
-            mImageView.setImageBitmap(bitmap);
+                if (bitmap != null)
+                    mImageView.setImageBitmap(bitmap);
+            }
+        });
 
         return view;
     }
