@@ -12,7 +12,6 @@ import android.support.v4.content.FileProvider;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -106,11 +105,18 @@ class ImageFileHelper {
         try {
             InputStream in = context.getContentResolver().openInputStream(
                     Uri.parse(photoPath));
-            BitmapFactory.decodeStream(in, null, bmOptions);
-        } catch (FileNotFoundException e) {
+            try {
+                BitmapFactory.decodeStream(in, null, bmOptions);
+            } finally {
+                if (in != null) {
+                    in.close();
+                }
+            }
+        } catch (IOException e) {
             Toast.makeText(context, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
             return 0;
         }
+
         int photoW = bmOptions.outWidth;
         int photoH = bmOptions.outHeight;
 
@@ -132,8 +138,14 @@ class ImageFileHelper {
         try {
             InputStream in = context.getContentResolver().openInputStream(
                     Uri.parse(photoPath));
-            bitmap = BitmapFactory.decodeStream(in, null, bmOptions);
-        } catch (FileNotFoundException e) {
+            try {
+                bitmap = BitmapFactory.decodeStream(in, null, bmOptions);
+            } finally {
+                if (in != null) {
+                    in.close();
+                }
+            }
+        } catch (IOException e) {
             Toast.makeText(context, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
             return null;
         }
