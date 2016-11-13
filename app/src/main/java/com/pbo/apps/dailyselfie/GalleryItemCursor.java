@@ -14,7 +14,7 @@ class GalleryItemCursor extends CursorWrapper {
         super(cursor);
 
         if (cursor != null)
-            CURSOR_INDEX_PATH = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+            CURSOR_INDEX_PATH = cursor.getColumnIndex(GalleryFragment.IMAGE_DATA);
     }
 
     String getImagePath() {
