@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String CURRENT_PHOTO_URI_KEY = "mCurrentPhotoUri";
 
     GalleryFragment mGalleryFragment;
+    ImageViewerFragment mImageViewerFragment;
 
     private String mCurrentPhotoPath;
     private Uri mCurrentPhotoUri;
@@ -41,7 +42,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mGalleryFragment = (GalleryFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+        initialiseFragments(savedInstanceState);
+    }
+
+    // Set up the fragments to use in the main content view
+    private void initialiseFragments(Bundle savedInstanceState) {
+        // Check that the activity is using the layout version with
+        // the fragment_container FrameLayout
+        if (findViewById(R.id.fragment_container) != null) {
+
+            // However, if we're being restored from a previous state,
+            // then we don't need to do anything and should return or else
+            // we could end up with overlapping fragments.
+            if (savedInstanceState != null) {
+                return;
+            }
+
+            // Create a new Gallery Fragment to be placed in the activity layout
+            mGalleryFragment = new GalleryFragment();
+
+            // In case this activity was started with special instructions from an
+            // Intent, pass the Intent's extras to the fragment as arguments
+            mGalleryFragment.setArguments(getIntent().getExtras());
+
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragment_container, mGalleryFragment).commit();
+
+            // Create new ImageViewerFragment for use later when viewing images
+            mImageViewerFragment = new ImageViewerFragment();
+        }
     }
 
     @Override
@@ -52,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         if (mCurrentPhotoUri != null) {
             savedInstanceState.putParcelable(CURRENT_PHOTO_URI_KEY, mCurrentPhotoUri);
         }
+        // TODO: Need to save fragments here to prevent crash in image viewer on rotation
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -88,6 +119,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Sends the user to the crop activity to ensure they return a square photo
+    private void dispatchCropPictureIntent() {
+        CropImage.activity(mCurrentPhotoUri)
+                .setFixAspectRatio(true)
+                .setAspectRatio(1, 1)
+                .setOutputUri(mCurrentPhotoUri)
+                .start(this);
+    }
+
+    // Switch in the image viewer fragment and display referenced image file
+    void viewImage(String photoPath) {
+        if (mImageViewerFragment == null) {
+            mImageViewerFragment = new ImageViewerFragment();
+        }
+        Bundle args = new Bundle();
+        args.putString(ImageViewerFragment.ARG_IMAGE_PATH, photoPath);
+        mImageViewerFragment.setArguments(args);
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, mImageViewerFragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
@@ -105,15 +160,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    // Sends the user to the crop activity to ensure they return a square photo
-    private void dispatchCropPictureIntent() {
-        CropImage.activity(mCurrentPhotoUri)
-                .setFixAspectRatio(true)
-                .setAspectRatio(1, 1)
-                .setOutputUri(mCurrentPhotoUri)
-                .start(this);
     }
 
     @Override
