@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -40,15 +41,27 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         // Find the gallery item
         final String photoPath = mCursor.getImagePath();
 
-        // Get the dimensions of the View
-        int targetW = mImageSize;
-        int targetH = mImageSize;
+        long photoID;
+        try {
+            photoID = mCursor.getImageID();
+        } catch (NumberFormatException e) {
+            photoID = 0;
+        }
 
         Bitmap bitmap = null;
-        int scaleFactor = ImageFileHelper.calculateBitmapScaleFactor(mContext, photoPath, targetW, targetH);
 
-        if (scaleFactor > 0)
-            bitmap = ImageFileHelper.scaleBitmap(mContext, photoPath, scaleFactor);
+        // Attempt to use thumbnail if we found the ID, otherwise use the full path
+        if (photoID > 0) {
+            bitmap = MediaStore.Images.Thumbnails.getThumbnail(
+                    mContext.getContentResolver(), photoID,
+                    MediaStore.Images.Thumbnails.MINI_KIND,
+                    null);
+        } else {
+            int scaleFactor = ImageFileHelper.calculateBitmapScaleFactor(mContext, photoPath, mImageSize, mImageSize);
+
+            if (scaleFactor > 0)
+                bitmap = ImageFileHelper.scaleBitmap(mContext, photoPath, scaleFactor);
+        }
 
         if (bitmap != null) {
             viewHolder.mImageView.setImageBitmap(bitmap);

@@ -22,9 +22,10 @@ import java.io.IOException;
  */
 public class GalleryFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final int IMAGE_LOADER_ID = 0;
-    static final String[] IMAGE_FILE_PROJECTION = { MediaStore.Images.Media.DATA };
+    public static final String[] IMAGE_FILE_PROJECTION = { MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID };
     public static final String IMAGE_SORT_ORDER = MediaStore.Images.Media.DATE_TAKEN + " DESC";
     public static final String IMAGE_DATA = MediaStore.Images.Media.DATA;
+    public static final String IMAGE_ID = MediaStore.Images.Media._ID;
 
     RecyclerView mGalleryView;
     GalleryAdapter mGalleryAdapter;
