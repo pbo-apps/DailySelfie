@@ -3,9 +3,8 @@ package com.pbo.apps.dailyselfie;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
-import android.provider.MediaStore;
+import android.os.AsyncTask;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -17,7 +16,6 @@ import android.view.ViewGroup;
  */
 
 class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
-    private static final int mImageSize = 100;
     private Context mContext;
     private GalleryItemCursor mCursor;
 
@@ -40,7 +38,6 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
 
         // Find the gallery item
         final String photoPath = mCursor.getImagePath();
-
         long photoID;
         try {
             photoID = mCursor.getImageID();
@@ -48,37 +45,35 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
             photoID = 0;
         }
 
-        Bitmap bitmap = null;
-
-        // Attempt to use thumbnail if we found the ID, otherwise use the full path
-        if (photoID > 0) {
-            bitmap = MediaStore.Images.Thumbnails.getThumbnail(
-                    mContext.getContentResolver(), photoID,
-                    MediaStore.Images.Thumbnails.MINI_KIND,
-                    null);
-        } else {
-            int scaleFactor = ImageFileHelper.calculateBitmapScaleFactor(mContext, photoPath, mImageSize, mImageSize);
-
-            if (scaleFactor > 0)
-                bitmap = ImageFileHelper.scaleBitmap(mContext, photoPath, scaleFactor);
+        // Either create a loader if this view hasn't got one yet, or cancel the existing load so we
+        // can start loading the new image
+        if (viewHolder.mBitmapLoaderTask == null) {
+            viewHolder.mBitmapLoaderTask = new BitmapLoaderTask(mContext, viewHolder.mImageView);
+        } else if (viewHolder.mBitmapLoaderTask.getStatus() == AsyncTask.Status.RUNNING
+                ||
+                viewHolder.mBitmapLoaderTask.getStatus() == AsyncTask.Status.PENDING
+                ||
+                viewHolder.mBitmapLoaderTask.getStatus() == AsyncTask.Status.FINISHED) {
+            viewHolder.mBitmapLoaderTask.cancel(true);
+            viewHolder.mBitmapLoaderTask = null;
+            viewHolder.mBitmapLoaderTask = new BitmapLoaderTask(mContext, viewHolder.mImageView);
         }
 
-        if (bitmap != null) {
-            viewHolder.mImageView.setImageBitmap(bitmap);
-            viewHolder.mImageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ((MainActivity) mContext).viewImage(photoPath);
-                }
-            });
-            viewHolder.mImageView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    startImageActivity(photoPath, Intent.ACTION_EDIT);
-                    return true;
-                }
-            });
-        }
+        viewHolder.mBitmapLoaderTask.execute(photoID);
+
+        viewHolder.mImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainActivity) mContext).viewImage(photoPath);
+            }
+        });
+        viewHolder.mImageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                startImageActivity(photoPath, Intent.ACTION_EDIT);
+                return true;
+            }
+        });
     }
 
     // Start an activity to do something with this image file
@@ -110,6 +105,7 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     // ViewHolder implementation to reduce view creation/deletion
     static class ViewHolder extends RecyclerView.ViewHolder {
         AppCompatImageView mImageView;
+        BitmapLoaderTask mBitmapLoaderTask;
 
         ViewHolder(View galleryItem) {
             super(galleryItem);
