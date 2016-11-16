@@ -12,7 +12,6 @@ import android.support.v4.content.FileProvider;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -106,16 +105,26 @@ class ImageFileHelper {
         try {
             InputStream in = context.getContentResolver().openInputStream(
                     Uri.parse(photoPath));
-            BitmapFactory.decodeStream(in, null, bmOptions);
-        } catch (FileNotFoundException e) {
+            try {
+                BitmapFactory.decodeStream(in, null, bmOptions);
+            } finally {
+                if (in != null) {
+                    in.close();
+                }
+            }
+        } catch (IOException e) {
             Toast.makeText(context, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
             return 0;
         }
+
         int photoW = bmOptions.outWidth;
         int photoH = bmOptions.outHeight;
 
         // Determine how much to scale down the image
-        return Math.min(photoW/targetW, photoH/targetH);
+        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+
+        // Default to full size image if the ratio is less than 1
+        return scaleFactor > 0 ? scaleFactor : 1;
     }
 
     // Get the desired scaling factor for use with setting the bitmap in an image view
@@ -129,8 +138,14 @@ class ImageFileHelper {
         try {
             InputStream in = context.getContentResolver().openInputStream(
                     Uri.parse(photoPath));
-            bitmap = BitmapFactory.decodeStream(in, null, bmOptions);
-        } catch (FileNotFoundException e) {
+            try {
+                bitmap = BitmapFactory.decodeStream(in, null, bmOptions);
+            } finally {
+                if (in != null) {
+                    in.close();
+                }
+            }
+        } catch (IOException e) {
             Toast.makeText(context, R.string.error_open_photo_file, Toast.LENGTH_LONG).show();
             return null;
         }

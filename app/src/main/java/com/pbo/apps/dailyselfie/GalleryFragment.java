@@ -22,8 +22,10 @@ import java.io.IOException;
  */
 public class GalleryFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final int IMAGE_LOADER_ID = 0;
-    static final String[] IMAGE_FILE_PROJECTION = { MediaStore.Images.Media.DATA };
+    public static final String[] IMAGE_FILE_PROJECTION = { MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID };
     public static final String IMAGE_SORT_ORDER = MediaStore.Images.Media.DATE_TAKEN + " DESC";
+    public static final String IMAGE_DATA = MediaStore.Images.Media.DATA;
+    public static final String IMAGE_ID = MediaStore.Images.Media._ID;
 
     RecyclerView mGalleryView;
     GalleryAdapter mGalleryAdapter;
@@ -41,7 +43,7 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_main, container, false);
+        View view = inflater.inflate(R.layout.gallery_layout, container, false);
 
         mGalleryView = (RecyclerView) view.findViewById(R.id.gallery_view);
 
@@ -65,7 +67,7 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
             Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
         }
         if (!imagesDirectory.isEmpty()) {
-            String selection = MediaStore.Images.Media.DATA + " LIKE '" + imagesDirectory + "%'";
+            String selection = IMAGE_DATA + " LIKE '" + imagesDirectory + "%'";
             mGalleryItemLoader = new CursorLoader(getContext(),
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     IMAGE_FILE_PROJECTION,
