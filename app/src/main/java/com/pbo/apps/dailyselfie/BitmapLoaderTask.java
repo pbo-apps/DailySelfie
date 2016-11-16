@@ -4,7 +4,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import java.lang.ref.WeakReference;
 
@@ -15,11 +17,13 @@ import java.lang.ref.WeakReference;
 class BitmapLoaderTask extends AsyncTask<Long, Void, Bitmap> {
     private final Context mContext;
     private final WeakReference<ImageView> mImageViewReference;
+    private final WeakReference<RelativeLayout> mProgressIconReference;
 
-    BitmapLoaderTask(Context context, ImageView imageView) {
+    BitmapLoaderTask(Context context, ImageView imageView, RelativeLayout progressIcon) {
         mContext = context;
         // Use a WeakReference to ensure the ImageView can be garbage collected
         mImageViewReference = new WeakReference<>(imageView);
+        mProgressIconReference = new WeakReference<>(progressIcon);
     }
 
     // Decode image in background.
@@ -39,6 +43,10 @@ class BitmapLoaderTask extends AsyncTask<Long, Void, Bitmap> {
     // Once complete, see if ImageView is still around and set bitmap.
     @Override
     protected void onPostExecute(Bitmap bitmap) {
+        final RelativeLayout progressIcon = mProgressIconReference.get();
+        if (progressIcon != null) {
+            progressIcon.setVisibility(View.GONE);
+        }
         final ImageView imageView = mImageViewReference.get();
         if (imageView != null) {
             if (bitmap != null) {

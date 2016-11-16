@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 /**
  * Implementation of adapter to put images into a gallery using a RecyclerView
@@ -48,7 +49,9 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         // Either create a loader if this view hasn't got one yet, or cancel the existing load so we
         // can start loading the new image
         if (viewHolder.mBitmapLoaderTask == null) {
-            viewHolder.mBitmapLoaderTask = new BitmapLoaderTask(mContext, viewHolder.mImageView);
+            viewHolder.mBitmapLoaderTask = new BitmapLoaderTask(mContext,
+                    viewHolder.mImageView,
+                    viewHolder.mProgressIcon);
         } else if (viewHolder.mBitmapLoaderTask.getStatus() == AsyncTask.Status.RUNNING
                 ||
                 viewHolder.mBitmapLoaderTask.getStatus() == AsyncTask.Status.PENDING
@@ -56,7 +59,10 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
                 viewHolder.mBitmapLoaderTask.getStatus() == AsyncTask.Status.FINISHED) {
             viewHolder.mBitmapLoaderTask.cancel(true);
             viewHolder.mBitmapLoaderTask = null;
-            viewHolder.mBitmapLoaderTask = new BitmapLoaderTask(mContext, viewHolder.mImageView);
+            viewHolder.mProgressIcon.setVisibility(View.VISIBLE);
+            viewHolder.mBitmapLoaderTask = new BitmapLoaderTask(mContext,
+                    viewHolder.mImageView,
+                    viewHolder.mProgressIcon);
         }
 
         viewHolder.mBitmapLoaderTask.execute(photoID);
@@ -104,12 +110,14 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
 
     // ViewHolder implementation to reduce view creation/deletion
     static class ViewHolder extends RecyclerView.ViewHolder {
+        RelativeLayout mProgressIcon;
         AppCompatImageView mImageView;
         BitmapLoaderTask mBitmapLoaderTask;
 
         ViewHolder(View galleryItem) {
             super(galleryItem);
             mImageView = (AppCompatImageView) galleryItem.findViewById(R.id.image);
+            mProgressIcon = (RelativeLayout) galleryItem.findViewById(R.id.progress_icon);
         }
     }
 }
