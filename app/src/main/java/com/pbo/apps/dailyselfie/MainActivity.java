@@ -3,6 +3,7 @@ package com.pbo.apps.dailyselfie;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -16,10 +17,11 @@ import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnViewImageListener {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final String CURRENT_PHOTO_PATH_KEY = "mCurrentPhotoPath";
     private static final String CURRENT_PHOTO_URI_KEY = "mCurrentPhotoUri";
+    private static final boolean DEVELOPER_MODE = true;
 
     GalleryFragment mGalleryFragment;
     ImageViewerFragment mImageViewerFragment;
@@ -29,6 +31,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (DEVELOPER_MODE) {
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()
+                    .detectDiskWrites()
+                    .detectNetwork()   // or .detectAll() for all detectable problems
+                    .penaltyLog()
+                    .build());
+            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                    .detectLeakedSqlLiteObjects()
+                    .detectLeakedClosableObjects()
+                    .penaltyLog()
+                    .penaltyDeath()
+                    .build());
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -82,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
         if (mCurrentPhotoUri != null) {
             savedInstanceState.putParcelable(CURRENT_PHOTO_URI_KEY, mCurrentPhotoUri);
         }
-        // TODO: Need to save fragments here to prevent crash in image viewer on rotation
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -129,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Switch in the image viewer fragment and display referenced image file
-    void viewImage(String photoPath) {
+    public void viewImage(String photoPath) {
         if (mImageViewerFragment == null) {
             mImageViewerFragment = new ImageViewerFragment();
         }

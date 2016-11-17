@@ -19,9 +19,11 @@ import android.widget.RelativeLayout;
 class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     private Context mContext;
     private GalleryItemCursor mCursor;
+    private OnViewImageListener mViewImageCallback;
 
-    GalleryAdapter(Context context) {
+    GalleryAdapter(Context context, OnViewImageListener viewImageCallback) {
         mContext = context;
+        mViewImageCallback = viewImageCallback;
         mCursor = new GalleryItemCursor(null);
     }
 
@@ -70,7 +72,7 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         viewHolder.mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MainActivity) mContext).viewImage(photoPath);
+                mViewImageCallback.viewImage(photoPath);
             }
         });
         viewHolder.mImageView.setOnLongClickListener(new View.OnLongClickListener() {
