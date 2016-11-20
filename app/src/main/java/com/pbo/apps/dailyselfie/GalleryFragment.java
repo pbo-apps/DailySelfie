@@ -33,6 +33,7 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
 
     CursorLoader mGalleryItemLoader;
     private OnViewImageListener mViewImageCallback;
+    private OnEditImageListener mEditImageCallback;
 
     public GalleryFragment() { }
 
@@ -50,9 +51,10 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
         // the callback interface. If not, it throws an exception
         try {
             mViewImageCallback = (OnViewImageListener) context;
+            mEditImageCallback = (OnEditImageListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
-                    + " must implement OnViewImageListener");
+                    + " must implement OnViewImageListener and OnEditImageListener");
         }
     }
 
@@ -65,7 +67,7 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
 
         mGalleryView.setLayoutManager(new GridLayoutManager(getContext(),
                 getResources().getInteger(R.integer.grid_layout_items_per_row)));
-        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback);
+        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback, mEditImageCallback);
         mGalleryView.setAdapter(mGalleryAdapter);
         mGalleryView.setItemAnimator(new DefaultItemAnimator());
 
