@@ -1,7 +1,6 @@
 package com.pbo.apps.dailyselfie;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -19,9 +18,13 @@ import android.widget.RelativeLayout;
 class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     private Context mContext;
     private GalleryItemCursor mCursor;
+    private OnViewImageListener mViewImageCallback;
+    private OnEditImageListener mEditImageCallback;
 
-    GalleryAdapter(Context context) {
+    GalleryAdapter(Context context, OnViewImageListener viewImageCallback, OnEditImageListener editImageCallback) {
         mContext = context;
+        mViewImageCallback = viewImageCallback;
+        mEditImageCallback = editImageCallback;
         mCursor = new GalleryItemCursor(null);
     }
 
@@ -70,24 +73,16 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         viewHolder.mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MainActivity) mContext).viewImage(photoPath);
+                mViewImageCallback.viewImage(photoPath);
             }
         });
         viewHolder.mImageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                startImageActivity(photoPath, Intent.ACTION_EDIT);
+                mEditImageCallback.dispatchEditPictureIntent(Uri.parse(photoPath));
                 return true;
             }
         });
-    }
-
-    // Start an activity to do something with this image file
-    private void startImageActivity(String photoPath, String action) {
-        Intent intentViewImage = new Intent()
-                .setAction(action)
-                .setDataAndType(Uri.parse(photoPath), "image/*");
-        mContext.startActivity(intentViewImage);
     }
 
     @Override

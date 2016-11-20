@@ -3,6 +3,7 @@ package com.pbo.apps.dailyselfie;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -16,12 +17,16 @@ import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+        implements OnViewImageListener, OnCropImageListener, OnEditImageListener {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final String CURRENT_PHOTO_PATH_KEY = "mCurrentPhotoPath";
     private static final String CURRENT_PHOTO_URI_KEY = "mCurrentPhotoUri";
+    private static final boolean DEVELOPER_MODE = true;
 
+    private static final String GALLERY_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.galleryfragment";
     GalleryFragment mGalleryFragment;
+    private static final String IMAGE_VIEWER_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.imageviewerfragment";
     ImageViewerFragment mImageViewerFragment;
 
     private String mCurrentPhotoPath;
@@ -29,6 +34,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (DEVELOPER_MODE) {
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()
+                    .detectDiskWrites()
+                    .detectNetwork()   // or .detectAll() for all detectable problems
+                    .penaltyLog()
+                    .build());
+            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                    .detectLeakedSqlLiteObjects()
+                    .detectLeakedClosableObjects()
+                    .penaltyLog()
+                    .penaltyDeath()
+                    .build());
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -67,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Add the fragment to the 'fragment_container' FrameLayout
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_container, mGalleryFragment).commit();
+                    .add(R.id.fragment_container, mGalleryFragment, GALLERY_FRAGMENT_TAG).commit();
 
             // Create new ImageViewerFragment for use later when viewing images
             mImageViewerFragment = new ImageViewerFragment();
@@ -82,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
         if (mCurrentPhotoUri != null) {
             savedInstanceState.putParcelable(CURRENT_PHOTO_URI_KEY, mCurrentPhotoUri);
         }
-        // TODO: Need to save fragments here to prevent crash in image viewer on rotation
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -120,16 +138,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Sends the user to the crop activity to ensure they return a square photo
-    private void dispatchCropPictureIntent() {
-        CropImage.activity(mCurrentPhotoUri)
+    @Override
+    public void dispatchCropPictureIntent(Uri photoUri) {
+        CropImage.activity(photoUri)
                 .setFixAspectRatio(true)
                 .setAspectRatio(1, 1)
-                .setOutputUri(mCurrentPhotoUri)
+                .setOutputUri(photoUri)
                 .start(this);
     }
 
+    // Let the user choose an app to edit the photo
+    @Override
+    public void dispatchEditPictureIntent(Uri photoUri) {
+        Intent intentViewImage = new Intent()
+                .setAction(Intent.ACTION_EDIT)
+                .setDataAndType(photoUri, "image/*");
+        startActivity(intentViewImage);
+    }
+
+    // Signal the cursor to update the gallery
+    private void updateGalleryImage(Uri photoUri) {
+        sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, photoUri));
+    }
+
     // Switch in the image viewer fragment and display referenced image file
-    void viewImage(String photoPath) {
+    @Override
+    public void viewImage(String photoPath) {
         if (mImageViewerFragment == null) {
             mImageViewerFragment = new ImageViewerFragment();
         }
@@ -138,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
         mImageViewerFragment.setArguments(args);
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, mImageViewerFragment)
+                .replace(R.id.fragment_container, mImageViewerFragment, IMAGE_VIEWER_FRAGMENT_TAG)
                 .addToBackStack(null)
                 .commit();
     }
@@ -147,14 +181,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
             if (resultCode == RESULT_OK) {
-                dispatchCropPictureIntent();
+                dispatchCropPictureIntent(mCurrentPhotoUri);
             }
         }
         else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
-                // Signal the cursor to update the gallery
-                sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(mCurrentPhotoPath)));
+                ImageViewerFragment imageViewerFragment = (ImageViewerFragment) getSupportFragmentManager().
+                        findFragmentByTag(IMAGE_VIEWER_FRAGMENT_TAG);
+                if (imageViewerFragment != null && imageViewerFragment.isVisible()) {
+                    mImageViewerFragment.refreshImage();
+                    updateGalleryImage(result.getUri());
+                } else {
+                    updateGalleryImage(Uri.parse(mCurrentPhotoPath));
+                }
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
                 Toast.makeText(this, error.getMessage(), Toast.LENGTH_SHORT).show();

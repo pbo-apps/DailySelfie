@@ -1,5 +1,6 @@
 package com.pbo.apps.dailyselfie;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
@@ -31,6 +32,8 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
     GalleryAdapter mGalleryAdapter;
 
     CursorLoader mGalleryItemLoader;
+    private OnViewImageListener mViewImageCallback;
+    private OnEditImageListener mEditImageCallback;
 
     public GalleryFragment() { }
 
@@ -38,6 +41,21 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // retain this fragment
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            mViewImageCallback = (OnViewImageListener) context;
+            mEditImageCallback = (OnEditImageListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnViewImageListener and OnEditImageListener");
+        }
     }
 
     @Override
@@ -49,7 +67,7 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
 
         mGalleryView.setLayoutManager(new GridLayoutManager(getContext(),
                 getResources().getInteger(R.integer.grid_layout_items_per_row)));
-        mGalleryAdapter = new GalleryAdapter(getContext());
+        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback, mEditImageCallback);
         mGalleryView.setAdapter(mGalleryAdapter);
         mGalleryView.setItemAnimator(new DefaultItemAnimator());
 
