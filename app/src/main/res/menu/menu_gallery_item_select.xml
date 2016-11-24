@@ -7,4 +7,9 @@
         android:orderInCategory="100"
         android:icon="@android:drawable/ic_menu_delete"
         app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_select_all"
+        android:title="@string/action_select_all"
+        android:orderInCategory="200"
+        android:icon="@android:drawable/ic_dialog_dialer"
+        app:showAsAction="ifRoom" />
 </menu>

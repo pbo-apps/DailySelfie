@@ -139,6 +139,10 @@ public class GalleryFragment extends Fragment
                 deleteGalleryItems(mode);
                 return true;
 
+            case R.id.action_select_all:
+                mGalleryAdapter.selectAll();
+                return true;
+
             default:
                 return false;
         }

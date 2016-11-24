@@ -7,4 +7,6 @@
     <string name="selected_count">%1$d selected</string>
     <string name="multi_delete_are_you_sure">Are you sure you want to delete these %1$d items?</string>
     <string name="single_delete_are_you_sure">Are you sure you want to delete this item?</string>
+    <string name="selected_all">All selected</string>
+    <string name="action_select_all">Select all</string>
 </resources>

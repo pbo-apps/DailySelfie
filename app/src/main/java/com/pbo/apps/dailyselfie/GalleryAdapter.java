@@ -29,6 +29,7 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     private ActionMode.Callback mActionModeCallback;
     ActionMode mActionMode;
     private SparseBooleanArray mSelectedItems = new SparseBooleanArray();
+    private boolean mPerformSelectAll = false;
 
     GalleryAdapter(Context context,
                    OnViewImageListener viewImageCallback,
@@ -126,12 +127,22 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     // Called when a user clicks an item in action mode
     private void updateSelection(int index, View stateIndicator) {
         stateIndicator.setActivated(!stateIndicator.isActivated());
-        this.toggleSelection(index);
-        int selectedItems = this.getSelectedItemCount();
-        if (selectedItems > 0) {
+        toggleSelection(index);
+        updateActionTitle();
+    }
+
+    // Set the action title based on the number of items selected
+    private void updateActionTitle() {
+        int selectedItemCount = this.getSelectedItemCount();
+        if (selectedItemCount == this.getItemCount()) {
+            String title = mContext.getString(
+                    R.string.selected_all);
+            mActionMode.setTitle(title);
+        }
+        else if (selectedItemCount > 0) {
             String title = mContext.getString(
                     R.string.selected_count,
-                    selectedItems);
+                    selectedItemCount);
             mActionMode.setTitle(title);
         } else {
             mActionMode.finish();
@@ -149,9 +160,25 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         notifyItemChanged(pos);
     }
 
+    private void selectItem(int pos) {
+        if (!mSelectedItems.get(pos, false)) {
+            mSelectedItems.put(pos, true);
+        }
+        notifyItemChanged(pos);
+    }
+
     // Clear all currently selected views
     void clearSelections() {
         mSelectedItems.clear();
+        notifyDataSetChanged();
+    }
+
+    // Select ALL of the items
+    void selectAll() {
+        for (int i = 0; i < this.getItemCount(); i++) {
+            selectItem(i);
+        }
+        updateActionTitle();
         notifyDataSetChanged();
     }
 
