@@ -127,10 +127,15 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     private void updateSelection(int index, View stateIndicator) {
         stateIndicator.setActivated(!stateIndicator.isActivated());
         this.toggleSelection(index);
-        String title = mContext.getString(
-                R.string.selected_count,
-                this.getSelectedItemCount());
-        mActionMode.setTitle(title);
+        int selectedItems = this.getSelectedItemCount();
+        if (selectedItems > 0) {
+            String title = mContext.getString(
+                    R.string.selected_count,
+                    selectedItems);
+            mActionMode.setTitle(title);
+        } else {
+            mActionMode.finish();
+        }
     }
 
     // Toggle the selection state of the view at the given position
