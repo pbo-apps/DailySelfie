@@ -28,4 +28,12 @@
             android:indeterminate="true" />
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/gallery_item_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/gallery_item_state"
+        android:alpha="0.3"
+        android:gravity="center"/>
+
 </com.pbo.apps.dailyselfie.SquareRelativeLayout>

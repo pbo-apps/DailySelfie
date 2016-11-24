@@ -1,6 +1,7 @@
 package com.pbo.apps.dailyselfie;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
@@ -8,20 +9,27 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Fragment class to handle displaying a grid of images
  */
-public class GalleryFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class GalleryFragment extends Fragment
+        implements LoaderManager.LoaderCallbacks<Cursor>, ActionMode.Callback {
     public static final int IMAGE_LOADER_ID = 0;
     public static final String[] IMAGE_FILE_PROJECTION = { MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID };
     public static final String IMAGE_SORT_ORDER = MediaStore.Images.Media.DATE_TAKEN + " DESC";
@@ -67,7 +75,7 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
 
         mGalleryView.setLayoutManager(new GridLayoutManager(getContext(),
                 getResources().getInteger(R.integer.grid_layout_items_per_row)));
-        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback, mEditImageCallback);
+        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback, mEditImageCallback, this);
         mGalleryView.setAdapter(mGalleryAdapter);
         mGalleryView.setItemAnimator(new DefaultItemAnimator());
 
@@ -105,5 +113,78 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mGalleryAdapter.swapCursor(null);
+    }
+
+    // Called when the action mode is created; startActionMode() was called
+    @Override
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        // Inflate a menu resource providing context menu items
+        MenuInflater inflater = mode.getMenuInflater();
+        inflater.inflate(R.menu.menu_gallery_item_select, menu);
+        return true;
+        }
+
+    // Called each time the action mode is shown. Always called after onCreateActionMode, but
+    // may be called multiple times if the mode is invalidated.
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        return false; // Return false if nothing is done
+    }
+
+    // Called when the user selects a contextual menu item
+    @Override
+    public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_delete:
+                deleteGalleryItems(mode);
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    // Give user the option to continue with the delete action or cancel
+    void deleteGalleryItems(final ActionMode mode) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
+        alert.setTitle("Delete");
+        int totalSelectedItems = mGalleryAdapter.getSelectedItemCount();
+        String message = totalSelectedItems > 1 ?
+                getString(R.string.multi_delete_are_you_sure, totalSelectedItems) : getString(R.string.single_delete_are_you_sure);
+        alert.setMessage(message);
+        alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                List<Integer> selectedItemPositions = mGalleryAdapter.getSelectedItems();
+                // for loop to delete items
+                for (int i = selectedItemPositions.size() - 1; i >= 0; i--) {
+                    mGalleryAdapter.delete(selectedItemPositions.get(i));
+                }
+                dialog.dismiss();
+                mode.finish(); // Action picked, so close the CAB
+            }
+        });
+        alert.setNeutralButton("CANCEL", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                mode.finish(); // Action picked, so close the CAB
+            }
+        });
+
+        alert.show();
+    }
+
+    // Called when the user exits the action mode
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+        mGalleryAdapter.mActionMode = null;
+        mGalleryAdapter.clearSelections();
     }
 }
