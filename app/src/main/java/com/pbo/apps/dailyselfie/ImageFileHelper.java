@@ -163,4 +163,10 @@ class ImageFileHelper {
                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
     }
+
+    // Delete the file at the given path, returning true if successfully deleted or file doesn't exist
+    static boolean deleteFile(Uri photoUri) {
+        File file = new File(photoUri.getPath());
+        return !file.exists() || file.delete();
+    }
 }

@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     // Signal the cursor to update the gallery
-    private void updateGalleryImage(Uri photoUri) {
+    public void updateGalleryImage(Uri photoUri) {
         sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, photoUri));
     }
 

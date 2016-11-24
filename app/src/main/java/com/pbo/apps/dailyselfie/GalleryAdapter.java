@@ -2,6 +2,7 @@ package com.pbo.apps.dailyselfie;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
@@ -12,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -168,9 +168,11 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     // Delete item at the given position
     void delete(Integer position) {
         mCursor.moveToPosition(position);
-        final String photoPath = mCursor.getImagePath();
-
-        Toast.makeText(mContext, photoPath, Toast.LENGTH_SHORT).show();
+        Uri photoUri = Uri.parse(mCursor.getImagePath());
+        if (ImageFileHelper.deleteFile(photoUri)) {
+            ((MainActivity) mContext).updateGalleryImage(photoUri);
+            notifyItemRemoved(position);
+        }
     }
 
     // ViewHolder implementation to reduce view creation/deletion
