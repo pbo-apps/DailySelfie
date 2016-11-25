@@ -140,7 +140,7 @@ public class GalleryFragment extends Fragment
                 return true;
 
             case R.id.action_select_all:
-                mGalleryAdapter.selectAll();
+                mGalleryAdapter.selectAll(mGalleryView);
                 return true;
 
             default:
@@ -189,6 +189,6 @@ public class GalleryFragment extends Fragment
     @Override
     public void onDestroyActionMode(ActionMode mode) {
         mGalleryAdapter.mActionMode = null;
-        mGalleryAdapter.clearSelections();
+        mGalleryAdapter.clearSelections(mGalleryView);
     }
 }

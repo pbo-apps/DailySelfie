@@ -29,7 +29,6 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     private ActionMode.Callback mActionModeCallback;
     ActionMode mActionMode;
     private SparseBooleanArray mSelectedItems = new SparseBooleanArray();
-    private boolean mPerformSelectAll = false;
 
     GalleryAdapter(Context context,
                    OnViewImageListener viewImageCallback,
@@ -157,29 +156,38 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         else {
             mSelectedItems.put(pos, true);
         }
-        notifyItemChanged(pos);
     }
 
-    private void selectItem(int pos) {
+    // Mark the item as selected if it isn't already, and return whether or not we selected it
+    private boolean selectItem(int pos) {
         if (!mSelectedItems.get(pos, false)) {
             mSelectedItems.put(pos, true);
+            return true;
         }
-        notifyItemChanged(pos);
+        return false;
     }
 
     // Clear all currently selected views
-    void clearSelections() {
+    void clearSelections(RecyclerView galleryView) {
+        for(int i = 0; i < mSelectedItems.size(); i++) {
+            int pos = mSelectedItems.keyAt(i);
+            if (mSelectedItems.get(pos, false)) {
+                ViewHolder viewHolder = (ViewHolder) galleryView.findViewHolderForAdapterPosition(pos);
+                viewHolder.mItemState.setActivated(false);
+            }
+        }
         mSelectedItems.clear();
-        notifyDataSetChanged();
     }
 
     // Select ALL of the items
-    void selectAll() {
-        for (int i = 0; i < this.getItemCount(); i++) {
-            selectItem(i);
+    void selectAll(RecyclerView galleryView) {
+        for (int pos = 0; pos < this.getItemCount(); pos++) {
+            if (selectItem(pos)) {
+                ViewHolder viewHolder = (ViewHolder) galleryView.findViewHolderForAdapterPosition(pos);
+                viewHolder.mItemState.setActivated(true);
+            }
         }
         updateActionTitle();
-        notifyDataSetChanged();
     }
 
     // Get the number of items currently selected
