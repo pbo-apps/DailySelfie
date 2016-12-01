@@ -206,13 +206,15 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     }
 
     // Delete item at the given position
-    void delete(Integer position) {
-        mCursor.moveToPosition(position);
-        Uri photoUri = Uri.parse(mCursor.getImagePath());
-        if (ImageFileHelper.deleteFile(photoUri)) {
-            ((MainActivity) mContext).updateGalleryImage(photoUri);
-            notifyItemRemoved(position);
+    String[] getImagePaths(List<Integer> positions) {
+        List<String> photoPaths = new ArrayList<>();
+        // for loop to delete items
+        for (int i = positions.size() - 1; i >= 0; i--) {
+            mCursor.moveToPosition(positions.get(i));
+            Uri photoUri = Uri.parse(mCursor.getImagePath());
+            photoPaths.add(photoUri.getPath());
         }
+        return photoPaths.toArray(new String[photoPaths.size()]);
     }
 
     // ViewHolder implementation to reduce view creation/deletion
