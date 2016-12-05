@@ -14,7 +14,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Toast;
 
 /**
  * Fragment to display an image full screen
@@ -26,6 +25,7 @@ public class ImageViewerFragment extends Fragment {
     private String mImagePath;
     private OnCropImageListener mCropImageCallback;
     private OnEditImageListener mEditImageCallback;
+    private OnDeleteImageListener mDeleteImageCallback;
 
     public ImageViewerFragment() { }
 
@@ -46,9 +46,10 @@ public class ImageViewerFragment extends Fragment {
         try {
             mCropImageCallback = (OnCropImageListener) context;
             mEditImageCallback = (OnEditImageListener) context;
+            mDeleteImageCallback = (OnDeleteImageListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
-                    + " must implement OnCropImageListener and OnEditImageListener");
+                    + " must implement OnCropImageListener, OnEditImageListener and OnDeleteImageListener");
         }
     }
 
@@ -114,8 +115,7 @@ public class ImageViewerFragment extends Fragment {
                 mEditImageCallback.dispatchEditPictureIntent(Uri.parse(mImagePath));
                 return true;
             case R.id.action_delete:
-                // TODO: Implement delete using gallery functionality
-                Toast.makeText(getContext(), "Please let me delete this image", Toast.LENGTH_SHORT).show();
+                mDeleteImageCallback.deleteImagesDialog(new String[] { Uri.parse(mImagePath).getPath() }, null);
                 return true;
             default:
                 return super.onContextItemSelected(item);

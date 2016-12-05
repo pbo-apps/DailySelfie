@@ -1,18 +1,12 @@
 package com.pbo.apps.dailyselfie;
 
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.database.Cursor;
-import android.net.Uri;
-import android.provider.MediaStore;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
@@ -33,19 +27,13 @@ import java.util.List;
  */
 public class GalleryFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor>, ActionMode.Callback {
-    public static final int IMAGE_LOADER_ID = 0;
-    public static final Uri IMAGE_STORE_URI = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-    public static final String IMAGE_DATA = MediaStore.Images.Media.DATA;
-    public static final String IMAGE_ID = MediaStore.Images.Media._ID;
-    public static final String[] IMAGE_FILE_PROJECTION = { IMAGE_DATA, IMAGE_ID };
-    public static final String IMAGE_SORT_ORDER = MediaStore.Images.Media.DATE_TAKEN + " DESC";
 
     RecyclerView mGalleryView;
     GalleryAdapter mGalleryAdapter;
-
     CursorLoader mGalleryItemLoader;
     private OnViewImageListener mViewImageCallback;
     private OnEditImageListener mEditImageCallback;
+    private OnDeleteImageListener mDeleteImageCallback;
 
     public GalleryFragment() { }
 
@@ -64,9 +52,10 @@ public class GalleryFragment extends Fragment
         try {
             mViewImageCallback = (OnViewImageListener) context;
             mEditImageCallback = (OnEditImageListener) context;
+            mDeleteImageCallback = (OnDeleteImageListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
-                    + " must implement OnViewImageListener and OnEditImageListener");
+                    + " must implement OnViewImageListener, OnEditImageListener and OnDeleteImageListener");
         }
     }
 
@@ -83,7 +72,7 @@ public class GalleryFragment extends Fragment
         mGalleryView.setAdapter(mGalleryAdapter);
         mGalleryView.setItemAnimator(new DefaultItemAnimator());
 
-        getLoaderManager().initLoader(IMAGE_LOADER_ID, null, this);
+        getLoaderManager().initLoader(MainActivity.IMAGE_LOADER_ID, null, this);
 
         return view;
     }
@@ -97,13 +86,13 @@ public class GalleryFragment extends Fragment
             Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
         }
         if (!imagesDirectory.isEmpty()) {
-            String selection = IMAGE_DATA + " LIKE '" + imagesDirectory + "%'";
+            String selection = MainActivity.IMAGE_DATA + " LIKE '" + imagesDirectory + "%'";
             mGalleryItemLoader = new CursorLoader(getContext(),
-                    IMAGE_STORE_URI,
-                    IMAGE_FILE_PROJECTION,
+                    MainActivity.IMAGE_STORE_URI,
+                    MainActivity.IMAGE_FILE_PROJECTION,
                     selection,
                     null,
-                    IMAGE_SORT_ORDER);
+                    MainActivity.IMAGE_SORT_ORDER);
         }
 
         return mGalleryItemLoader;
@@ -152,76 +141,10 @@ public class GalleryFragment extends Fragment
         }
     }
 
-    // Give user the option to continue with the delete action or cancel
+    // Delete all selected items in the gallery
     void deleteGalleryItems(final ActionMode mode) {
-        AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
-        alert.setTitle("Delete");
-        int totalSelectedItems = mGalleryAdapter.getSelectedItemCount();
-        String message = totalSelectedItems > 1 ?
-                getString(R.string.multi_delete_are_you_sure, totalSelectedItems) : getString(R.string.single_delete_are_you_sure);
-        alert.setMessage(message);
-        alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                List<Integer> selectedItemPositions = mGalleryAdapter.getSelectedItems();
-                deleteImageFiles(mGalleryAdapter.getImagePaths(selectedItemPositions));
-                dialog.dismiss();
-                mode.finish(); // Action picked, so close the CAB
-            }
-        });
-        alert.setNeutralButton("CANCEL", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                mode.finish(); // Action picked, so close the CAB
-            }
-        });
-
-        alert.show();
-    }
-
-    // Delete images directly from the media store - this will delete the file and notify loaders watching the media store
-    public void deleteImageFiles(String[] imageFilesToDelete) {
-        // Query for the ID of the media matching the file paths
-        ContentResolver contentResolver = getContext().getContentResolver();
-        String selection = MediaStore.Images.Media.DATA + " IN (" + makeSQLPlaceholders(imageFilesToDelete.length) + ")";
-        Cursor c = contentResolver.query(IMAGE_STORE_URI, new String[] { IMAGE_ID }, selection, imageFilesToDelete, null);
-        if (c == null) {
-            Toast.makeText(getContext(), R.string.failed_delete_image, Toast.LENGTH_LONG).show();
-            return;
-        }
-        try {
-            while (c.moveToNext()) {
-                // We found the ID. Deleting the item via the content provider will also remove the file
-                long id = c.getLong(c.getColumnIndexOrThrow(IMAGE_ID));
-                Uri deleteUri = ContentUris.withAppendedId(IMAGE_STORE_URI, id);
-                contentResolver.delete(deleteUri, null, null);
-            }
-        }
-        finally {
-            c.close();
-        }
-    }
-
-    // Create a string containing placeholder for SQL query parameters
-    private String makeSQLPlaceholders(int len) {
-        if (len < 1) {
-            // It will lead to an invalid query anyway ..
-            throw new RuntimeException("No placeholders");
-        } else {
-            StringBuilder sb = new StringBuilder(len * 2 - 1);
-            sb.append("?");
-            for (int i = 1; i < len; i++) {
-                sb.append(",?");
-            }
-            return sb.toString();
-        }
+        List<Integer> selectedItemPositions = mGalleryAdapter.getSelectedItems();
+        mDeleteImageCallback.deleteImagesDialog(mGalleryAdapter.getImagePaths(selectedItemPositions), mode);
     }
 
     // Called when the user exits the action mode
