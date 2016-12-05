@@ -25,18 +25,15 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     private Context mContext;
     private GalleryItemCursor mCursor;
     private OnViewImageListener mViewImageCallback;
-    private OnEditImageListener mEditImageCallback;
     private ActionMode.Callback mActionModeCallback;
     ActionMode mActionMode;
     private SparseBooleanArray mSelectedItems = new SparseBooleanArray();
 
     GalleryAdapter(Context context,
                    OnViewImageListener viewImageCallback,
-                   OnEditImageListener editImageCallback,
                    ActionMode.Callback actionModeCallback) {
         mContext = context;
         mViewImageCallback = viewImageCallback;
-        mEditImageCallback = editImageCallback;
         mActionModeCallback = actionModeCallback;
         mCursor = new GalleryItemCursor(null);
     }

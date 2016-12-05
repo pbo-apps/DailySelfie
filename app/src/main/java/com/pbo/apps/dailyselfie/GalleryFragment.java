@@ -32,7 +32,6 @@ public class GalleryFragment extends Fragment
     GalleryAdapter mGalleryAdapter;
     CursorLoader mGalleryItemLoader;
     private OnViewImageListener mViewImageCallback;
-    private OnEditImageListener mEditImageCallback;
     private OnDeleteImageListener mDeleteImageCallback;
 
     public GalleryFragment() { }
@@ -51,11 +50,10 @@ public class GalleryFragment extends Fragment
         // the callback interface. If not, it throws an exception
         try {
             mViewImageCallback = (OnViewImageListener) context;
-            mEditImageCallback = (OnEditImageListener) context;
             mDeleteImageCallback = (OnDeleteImageListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
-                    + " must implement OnViewImageListener, OnEditImageListener and OnDeleteImageListener");
+                    + " must implement OnViewImageListener and OnDeleteImageListener");
         }
     }
 
@@ -68,7 +66,7 @@ public class GalleryFragment extends Fragment
 
         mGalleryView.setLayoutManager(new GridLayoutManager(getContext(),
                 getResources().getInteger(R.integer.grid_layout_items_per_row)));
-        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback, mEditImageCallback, this);
+        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback, this);
         mGalleryView.setAdapter(mGalleryAdapter);
         mGalleryView.setItemAnimator(new DefaultItemAnimator());
 

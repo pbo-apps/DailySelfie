@@ -7,9 +7,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.AppCompatImageView;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,7 +20,7 @@ import android.view.ViewGroup;
 /**
  * Fragment to display an image full screen
  */
-public class ImageViewerFragment extends Fragment {
+public class ImageViewerFragment extends Fragment implements ActionMode.Callback {
 
     public static final String ARG_IMAGE_PATH = "com.pbo.apps.dailyselfie.imageviewer.photopath";
     AppCompatImageView mImageView;
@@ -26,8 +28,10 @@ public class ImageViewerFragment extends Fragment {
     private OnCropImageListener mCropImageCallback;
     private OnEditImageListener mEditImageCallback;
     private OnDeleteImageListener mDeleteImageCallback;
+    private ActionMode mActionMode;
 
-    public ImageViewerFragment() { }
+    public ImageViewerFragment() {
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -55,15 +59,29 @@ public class ImageViewerFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                              Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.image_viewer_layout, container, false);
 
         mImageView = (AppCompatImageView) view.findViewById(R.id.image_viewer_view);
         displayImage();
 
-        registerForContextMenu(view);
-
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mActionMode == null) {
+            mActionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(this);
+        }
+    }
+    @Override
+    public void onPause() {
+        if (mActionMode != null) {
+            mActionMode.finish();
+            mActionMode = null;
+        }
+        super.onPause();
     }
 
     // Public function to allow the activity to force a redraw of the image
@@ -96,16 +114,25 @@ public class ImageViewerFragment extends Fragment {
         });
     }
 
+    // Called when the action mode is created; startActionMode() was called
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View v,
-                                    ContextMenu.ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater inflater = getActivity().getMenuInflater();
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        // Inflate a menu resource providing context menu items
+        MenuInflater inflater = mode.getMenuInflater();
         inflater.inflate(R.menu.image_viewer_context_menu, menu);
+        return true;
     }
 
+    // Called each time the action mode is shown. Always called after onCreateActionMode, but
+    // may be called multiple times if the mode is invalidated.
     @Override
-    public boolean onContextItemSelected(MenuItem item) {
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        return false; // Return false if nothing is done
+    }
+
+    // Called when the user selects a contextual menu item
+    @Override
+    public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_crop:
                 mCropImageCallback.dispatchCropPictureIntent(Uri.parse(mImagePath));
@@ -127,7 +154,14 @@ public class ImageViewerFragment extends Fragment {
                         });
                 return true;
             default:
-                return super.onContextItemSelected(item);
+                return false;
         }
+    }
+
+    // Called when the user exits the action mode
+    // In this case, the fragment is an action mode in itself, so on exiting the action mode we exit the fragment
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+        // TODO: Figure out how to exit the fragment here, but only if we're being destroyed due to the back button
     }
 }
