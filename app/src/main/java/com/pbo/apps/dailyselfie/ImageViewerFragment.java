@@ -7,9 +7,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatImageView;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.Toast;
 
 /**
  * Fragment to display an image full screen
@@ -20,6 +25,7 @@ public class ImageViewerFragment extends Fragment {
     AppCompatImageView mImageView;
     private String mImagePath;
     private OnCropImageListener mCropImageCallback;
+    private OnEditImageListener mEditImageCallback;
 
     public ImageViewerFragment() { }
 
@@ -39,9 +45,10 @@ public class ImageViewerFragment extends Fragment {
         // the callback interface. If not, it throws an exception
         try {
             mCropImageCallback = (OnCropImageListener) context;
+            mEditImageCallback = (OnEditImageListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
-                    + " must implement OnCropImageListener");
+                    + " must implement OnCropImageListener and OnEditImageListener");
         }
     }
 
@@ -53,6 +60,7 @@ public class ImageViewerFragment extends Fragment {
         mImageView = (AppCompatImageView) view.findViewById(R.id.image_viewer_view);
         displayImage();
 
+        registerForContextMenu(view);
 
         return view;
     }
@@ -82,16 +90,35 @@ public class ImageViewerFragment extends Fragment {
 
                 if (bitmap != null) {
                     mImageView.setImageBitmap(bitmap);
-                    mImageView.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View view) {
-                            mCropImageCallback.dispatchCropPictureIntent(Uri.parse(mImagePath));
-                            return true;
-                        }
-                    });
                 }
             }
         });
     }
 
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.image_viewer_context_menu, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        switch (item.getItemId()) {
+            case R.id.action_crop:
+                mCropImageCallback.dispatchCropPictureIntent(Uri.parse(mImagePath));
+                return true;
+            case R.id.action_edit:
+                mEditImageCallback.dispatchEditPictureIntent(Uri.parse(mImagePath));
+                return true;
+            case R.id.action_delete:
+                // TODO: Implement delete using gallery functionality
+                Toast.makeText(getContext(), "Please let me delete this image", Toast.LENGTH_SHORT).show();
+                return true;
+            default:
+                return super.onContextItemSelected(item);
+        }
+    }
 }

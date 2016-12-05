@@ -124,7 +124,7 @@ public class GalleryFragment extends Fragment
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         // Inflate a menu resource providing context menu items
         MenuInflater inflater = mode.getMenuInflater();
-        inflater.inflate(R.menu.menu_gallery_item_select, menu);
+        inflater.inflate(R.menu.gallery_item_select_menu, menu);
         return true;
         }
 
@@ -164,7 +164,7 @@ public class GalleryFragment extends Fragment
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 List<Integer> selectedItemPositions = mGalleryAdapter.getSelectedItems();
-                deleteGalleryImages(mGalleryAdapter.getImagePaths(selectedItemPositions));
+                deleteImageFiles(mGalleryAdapter.getImagePaths(selectedItemPositions));
                 dialog.dismiss();
                 mode.finish(); // Action picked, so close the CAB
             }
@@ -187,11 +187,15 @@ public class GalleryFragment extends Fragment
     }
 
     // Delete images directly from the media store - this will delete the file and notify loaders watching the media store
-    public void deleteGalleryImages(String[] imageFilesToDelete) {
+    public void deleteImageFiles(String[] imageFilesToDelete) {
         // Query for the ID of the media matching the file paths
         ContentResolver contentResolver = getContext().getContentResolver();
         String selection = MediaStore.Images.Media.DATA + " IN (" + makeSQLPlaceholders(imageFilesToDelete.length) + ")";
         Cursor c = contentResolver.query(IMAGE_STORE_URI, new String[] { IMAGE_ID }, selection, imageFilesToDelete, null);
+        if (c == null) {
+            Toast.makeText(getContext(), R.string.failed_delete_image, Toast.LENGTH_LONG).show();
+            return;
+        }
         try {
             while (c.moveToNext()) {
                 // We found the ID. Deleting the item via the content provider will also remove the file
@@ -199,7 +203,8 @@ public class GalleryFragment extends Fragment
                 Uri deleteUri = ContentUris.withAppendedId(IMAGE_STORE_URI, id);
                 contentResolver.delete(deleteUri, null, null);
             }
-        } finally {
+        }
+        finally {
             c.close();
         }
     }
