@@ -144,7 +144,15 @@ public class GalleryFragment extends Fragment
     // Delete all selected items in the gallery
     void deleteGalleryItems(final ActionMode mode) {
         List<Integer> selectedItemPositions = mGalleryAdapter.getSelectedItems();
-        mDeleteImageCallback.deleteImagesDialog(mGalleryAdapter.getImagePaths(selectedItemPositions), mode);
+        mDeleteImageCallback.deleteImagesDialog(mGalleryAdapter.getImagePaths(selectedItemPositions),
+                new OnCompleteImageDeleteListener() {
+                    @Override
+                    public void afterImageDelete() {
+                        if (mode != null) {
+                            mode.finish();
+                        }
+                    }
+                });
     }
 
     // Called when the user exits the action mode

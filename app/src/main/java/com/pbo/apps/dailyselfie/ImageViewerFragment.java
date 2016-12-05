@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.AppCompatImageView;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -13,7 +14,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 
 /**
  * Fragment to display an image full screen
@@ -106,7 +106,6 @@ public class ImageViewerFragment extends Fragment {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
             case R.id.action_crop:
                 mCropImageCallback.dispatchCropPictureIntent(Uri.parse(mImagePath));
@@ -115,7 +114,17 @@ public class ImageViewerFragment extends Fragment {
                 mEditImageCallback.dispatchEditPictureIntent(Uri.parse(mImagePath));
                 return true;
             case R.id.action_delete:
-                mDeleteImageCallback.deleteImagesDialog(new String[] { Uri.parse(mImagePath).getPath() }, null);
+                final FragmentManager fragMan = getActivity().getSupportFragmentManager();
+                mDeleteImageCallback.deleteImagesDialog(new String[]{Uri.parse(mImagePath).getPath()},
+                        new OnCompleteImageDeleteListener() {
+                            @Override
+                            public void afterImageDelete() {
+                                // If we're in the image viewer fragment and we've deleted it, then let's get back to the gallery
+                                if (fragMan != null && fragMan.findFragmentByTag(MainActivity.IMAGE_VIEWER_FRAGMENT_TAG) != null) {
+                                    fragMan.popBackStack();
+                                }
+                            }
+                        });
                 return true;
             default:
                 return super.onContextItemSelected(item);

@@ -37,9 +37,9 @@ public class MainActivity extends AppCompatActivity
     private static final String CURRENT_PHOTO_URI_KEY = "mCurrentPhotoUri";
     private static final boolean DEVELOPER_MODE = true;
 
-    private static final String GALLERY_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.galleryfragment";
+    static final String GALLERY_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.galleryfragment";
     GalleryFragment mGalleryFragment;
-    private static final String IMAGE_VIEWER_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.imageviewerfragment";
+    static final String IMAGE_VIEWER_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.imageviewerfragment";
     ImageViewerFragment mImageViewerFragment;
 
     private String mCurrentPhotoPath;
@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     // Give user the option to continue with the delete action or cancel
-    public void deleteImagesDialog(final String[] imageFilesToDelete, @Nullable final ActionMode mode) {
+    public void deleteImagesDialog(final String[] imageFilesToDelete, @Nullable final OnCompleteImageDeleteListener imageDeleteListener) {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Delete");
         int totalSelectedItems = imageFilesToDelete.length;
@@ -200,26 +200,15 @@ public class MainActivity extends AppCompatActivity
             public void onClick(DialogInterface dialog, int which) {
                 deleteImageFiles(imageFilesToDelete);
                 dialog.dismiss();
-                if (mode != null) {
-                    // Action picked, so end action mode
-                    mode.finish();
+                if (imageDeleteListener != null) {
+                    imageDeleteListener.afterImageDelete();
                 }
             }
         });
-        alert.setNeutralButton("CANCEL", new DialogInterface.OnClickListener() {
+        alert.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
-            }
-        });
-        alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                if (mode != null) {
-                    // Action picked, so end action mode
-                    mode.finish();
-                }
             }
         });
 
