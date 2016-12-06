@@ -12,4 +12,5 @@
     <string name="action_crop">Crop</string>
     <string name="action_edit">Edit</string>
     <string name="failed_delete_image">Could not find image to delete</string>
+    <string name="view_image_action_title">Edit Selfie</string>
 </resources>

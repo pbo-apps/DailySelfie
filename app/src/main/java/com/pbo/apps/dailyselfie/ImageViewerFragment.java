@@ -74,6 +74,7 @@ public class ImageViewerFragment extends Fragment implements ActionMode.Callback
         if (mActionMode == null) {
             mActionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(this);
         }
+        ((MainActivity) getActivity()).hideCamera();
     }
 
     @Override
@@ -127,6 +128,7 @@ public class ImageViewerFragment extends Fragment implements ActionMode.Callback
     // may be called multiple times if the mode is invalidated.
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        mode.setTitle(R.string.view_image_action_title);
         return false; // Return false if nothing is done
     }
 

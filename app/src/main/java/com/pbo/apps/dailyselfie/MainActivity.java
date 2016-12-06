@@ -185,8 +185,6 @@ public class MainActivity extends AppCompatActivity
                 .replace(R.id.fragment_container, mImageViewerFragment, IMAGE_VIEWER_FRAGMENT_TAG)
                 .addToBackStack(null)
                 .commit();
-
-        hideCamera();
     }
 
     void hideCamera() {
