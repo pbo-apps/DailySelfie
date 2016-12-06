@@ -79,7 +79,6 @@ public class ImageViewerFragment extends Fragment implements ActionMode.Callback
     public void onPause() {
         if (mActionMode != null) {
             mActionMode.finish();
-            mActionMode = null;
         }
         super.onPause();
     }
@@ -162,6 +161,7 @@ public class ImageViewerFragment extends Fragment implements ActionMode.Callback
     // In this case, the fragment is an action mode in itself, so on exiting the action mode we exit the fragment
     @Override
     public void onDestroyActionMode(ActionMode mode) {
+        mActionMode = null;
         // TODO: Figure out how to exit the fragment here, but only if we're being destroyed due to the back button
     }
 }
