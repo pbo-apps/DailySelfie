@@ -76,6 +76,12 @@ public class GalleryFragment extends Fragment
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        ((MainActivity) getActivity()).showCamera();
+    }
+
+    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String imagesDirectory = "";
         try {
@@ -119,6 +125,7 @@ public class GalleryFragment extends Fragment
     // may be called multiple times if the mode is invalidated.
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        ((MainActivity) getActivity()).hideCamera();
         return false; // Return false if nothing is done
     }
 
@@ -158,5 +165,6 @@ public class GalleryFragment extends Fragment
     public void onDestroyActionMode(ActionMode mode) {
         mGalleryAdapter.mActionMode = null;
         mGalleryAdapter.clearSelections(mGalleryView);
+        ((MainActivity) getActivity()).showCamera();
     }
 }

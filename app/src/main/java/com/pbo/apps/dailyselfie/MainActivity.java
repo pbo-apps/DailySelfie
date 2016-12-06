@@ -13,7 +13,6 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ActionMode;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
@@ -44,6 +43,7 @@ public class MainActivity extends AppCompatActivity
 
     private String mCurrentPhotoPath;
     private Uri mCurrentPhotoUri;
+    private FloatingActionButton mFabCamera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +66,8 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mFabCamera = (FloatingActionButton) findViewById(R.id.fab);
+        mFabCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dispatchTakePictureIntent();
@@ -185,6 +185,18 @@ public class MainActivity extends AppCompatActivity
                 .replace(R.id.fragment_container, mImageViewerFragment, IMAGE_VIEWER_FRAGMENT_TAG)
                 .addToBackStack(null)
                 .commit();
+
+        hideCamera();
+    }
+
+    void hideCamera() {
+        if (mFabCamera != null && mFabCamera.getVisibility() != View.GONE)
+            mFabCamera.setVisibility(View.GONE);
+    }
+
+    void showCamera() {
+        if (mFabCamera != null && mFabCamera.getVisibility() != View.VISIBLE)
+            mFabCamera.setVisibility(View.VISIBLE);
     }
 
     // Give user the option to continue with the delete action or cancel

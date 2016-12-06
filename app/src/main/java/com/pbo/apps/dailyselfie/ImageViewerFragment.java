@@ -75,6 +75,7 @@ public class ImageViewerFragment extends Fragment implements ActionMode.Callback
             mActionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(this);
         }
     }
+
     @Override
     public void onPause() {
         if (mActionMode != null) {
