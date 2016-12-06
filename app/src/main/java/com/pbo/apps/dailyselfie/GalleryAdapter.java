@@ -170,7 +170,9 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
             int pos = mSelectedItems.keyAt(i);
             if (mSelectedItems.get(pos, false)) {
                 ViewHolder viewHolder = (ViewHolder) galleryView.findViewHolderForAdapterPosition(pos);
-                viewHolder.mItemState.setActivated(false);
+                if (viewHolder != null) {
+                    viewHolder.mItemState.setActivated(false);
+                }
             }
         }
         mSelectedItems.clear();
@@ -181,7 +183,9 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         for (int pos = 0; pos < this.getItemCount(); pos++) {
             if (selectItem(pos)) {
                 ViewHolder viewHolder = (ViewHolder) galleryView.findViewHolderForAdapterPosition(pos);
-                viewHolder.mItemState.setActivated(true);
+                if (viewHolder != null) {
+                    viewHolder.mItemState.setActivated(true);
+                }
             }
         }
         updateActionTitle();
