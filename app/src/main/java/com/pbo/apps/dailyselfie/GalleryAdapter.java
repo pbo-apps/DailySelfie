@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.AppCompatImageView;
@@ -31,11 +32,21 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
 
     GalleryAdapter(Context context,
                    OnViewImageListener viewImageCallback,
-                   ActionMode.Callback actionModeCallback) {
+                   ActionMode.Callback actionModeCallback,
+         @Nullable ArrayList<Integer> selectedItems) {
         mContext = context;
         mViewImageCallback = viewImageCallback;
         mActionModeCallback = actionModeCallback;
         mCursor = new GalleryItemCursor(null);
+        if (selectedItems != null) {
+            for (Integer position :
+                    selectedItems) {
+                mSelectedItems.put(position, true);
+            }
+            if (mActionMode == null && mSelectedItems.size() > 0) {
+                mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
+            }
+        }
     }
 
     @Override
@@ -80,6 +91,10 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
 
         viewHolder.mItemState.setActivated(mSelectedItems.get(position, false));
         viewHolder.mBitmapLoaderTask.execute(photoID);
+
+        if (mActionMode != null) {
+            updateActionTitle();
+        }
 
         viewHolder.mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -197,8 +212,8 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     }
 
     // Return a list of all items marked as selected
-    List<Integer> getSelectedItems() {
-        List<Integer> items =
+    ArrayList<Integer> getSelectedItems() {
+        ArrayList<Integer> items =
                 new ArrayList<>(mSelectedItems.size());
         for (int i = 0; i < mSelectedItems.size(); i++) {
             items.add(mSelectedItems.keyAt(i));

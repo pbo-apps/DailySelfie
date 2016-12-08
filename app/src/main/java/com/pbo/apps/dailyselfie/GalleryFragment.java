@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,6 +28,7 @@ import java.util.List;
  */
 public class GalleryFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor>, ActionMode.Callback {
+    static final String GALLERY_SELECTED_ITEMS_TAG = "com.pbo.apps.dailyselfie.galleryselecteditems";
 
     RecyclerView mGalleryView;
     GalleryAdapter mGalleryAdapter;
@@ -66,7 +68,11 @@ public class GalleryFragment extends Fragment
 
         mGalleryView.setLayoutManager(new GridLayoutManager(getContext(),
                 getResources().getInteger(R.integer.grid_layout_items_per_row)));
-        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback, this);
+        ArrayList<Integer> selectedItems = null;
+        if (savedInstanceState != null && savedInstanceState.containsKey(GALLERY_SELECTED_ITEMS_TAG)) {
+            selectedItems = savedInstanceState.getIntegerArrayList(GALLERY_SELECTED_ITEMS_TAG);
+        }
+        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback, this, selectedItems);
         mGalleryView.setAdapter(mGalleryAdapter);
         mGalleryView.setItemAnimator(new DefaultItemAnimator());
 
@@ -76,9 +82,18 @@ public class GalleryFragment extends Fragment
     }
 
     @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        if (isInActionMode()) {
+            savedInstanceState.putIntegerArrayList(GALLERY_SELECTED_ITEMS_TAG, mGalleryAdapter.getSelectedItems());
+        }
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
-        ((MainActivity) getActivity()).showCamera();
+        if (!isInActionMode()) {
+            ((MainActivity) getActivity()).showCamera();
+        }
     }
 
     @Override
@@ -166,5 +181,10 @@ public class GalleryFragment extends Fragment
         mGalleryAdapter.mActionMode = null;
         mGalleryAdapter.clearSelections(mGalleryView);
         ((MainActivity) getActivity()).showCamera();
+    }
+
+    // Check if action mode has been started on the gallery
+    private boolean isInActionMode() {
+        return mGalleryAdapter != null && mGalleryAdapter.mActionMode != null;
     }
 }
