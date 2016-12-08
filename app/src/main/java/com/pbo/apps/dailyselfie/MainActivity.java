@@ -1,11 +1,17 @@
 package com.pbo.apps.dailyselfie;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -18,19 +24,26 @@ import com.theartofdev.edmodo.cropper.CropImage;
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity
-        implements OnViewImageListener, OnCropImageListener, OnEditImageListener {
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+        implements OnViewImageListener, OnCropImageListener, OnEditImageListener, OnDeleteImageListener {
+    public static final int IMAGE_LOADER_ID = 0;
+    public static final Uri IMAGE_STORE_URI = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+    public static final String IMAGE_DATA = MediaStore.Images.Media.DATA;
+    public static final String IMAGE_ID = MediaStore.Images.Media._ID;
+    public static final String[] IMAGE_FILE_PROJECTION = { IMAGE_DATA, IMAGE_ID };
+    public static final String IMAGE_SORT_ORDER = MediaStore.Images.Media.DATE_TAKEN + " DESC";
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final String CURRENT_PHOTO_PATH_KEY = "mCurrentPhotoPath";
     private static final String CURRENT_PHOTO_URI_KEY = "mCurrentPhotoUri";
     private static final boolean DEVELOPER_MODE = true;
 
-    private static final String GALLERY_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.galleryfragment";
+    static final String GALLERY_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.galleryfragment";
     GalleryFragment mGalleryFragment;
-    private static final String IMAGE_VIEWER_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.imageviewerfragment";
+    static final String IMAGE_VIEWER_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.imageviewerfragment";
     ImageViewerFragment mImageViewerFragment;
 
     private String mCurrentPhotoPath;
     private Uri mCurrentPhotoUri;
+    private FloatingActionButton mFabCamera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,8 +66,8 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mFabCamera = (FloatingActionButton) findViewById(R.id.fab);
+        mFabCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dispatchTakePictureIntent();
@@ -87,9 +100,6 @@ public class MainActivity extends AppCompatActivity
             // Add the fragment to the 'fragment_container' FrameLayout
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.fragment_container, mGalleryFragment, GALLERY_FRAGMENT_TAG).commit();
-
-            // Create new ImageViewerFragment for use later when viewing images
-            mImageViewerFragment = new ImageViewerFragment();
         }
     }
 
@@ -157,7 +167,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     // Signal the cursor to update the gallery
-    private void updateGalleryImage(Uri photoUri) {
+    public void updateGalleryImage(Uri photoUri) {
         sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, photoUri));
     }
 
@@ -175,6 +185,82 @@ public class MainActivity extends AppCompatActivity
                 .replace(R.id.fragment_container, mImageViewerFragment, IMAGE_VIEWER_FRAGMENT_TAG)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    void hideCamera() {
+        if (mFabCamera != null && mFabCamera.getVisibility() != View.GONE)
+            mFabCamera.setVisibility(View.GONE);
+    }
+
+    void showCamera() {
+        if (mFabCamera != null && mFabCamera.getVisibility() != View.VISIBLE)
+            mFabCamera.setVisibility(View.VISIBLE);
+    }
+
+    // Give user the option to continue with the delete action or cancel
+    public void deleteImagesDialog(final String[] imageFilesToDelete, @Nullable final OnCompleteImageDeleteListener imageDeleteListener) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Delete");
+        int totalSelectedItems = imageFilesToDelete.length;
+        String message = totalSelectedItems > 1 ?
+                getString(R.string.multi_delete_are_you_sure, totalSelectedItems) : getString(R.string.single_delete_are_you_sure);
+        alert.setMessage(message);
+        alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                deleteImageFiles(imageFilesToDelete);
+                dialog.dismiss();
+                if (imageDeleteListener != null) {
+                    imageDeleteListener.afterImageDelete();
+                }
+            }
+        });
+        alert.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        alert.show();
+    }
+
+    // Delete images directly from the media store - this will delete the file and notify loaders watching the media store
+    private void deleteImageFiles(String[] imageFilesToDelete) {
+        // Query for the ID of the media matching the file paths
+        ContentResolver contentResolver = getContentResolver();
+        String selection = IMAGE_DATA + " IN (" + makeSQLPlaceholders(imageFilesToDelete.length) + ")";
+        Cursor c = contentResolver.query(IMAGE_STORE_URI, new String[] { IMAGE_ID }, selection, imageFilesToDelete, null);
+        if (c == null) {
+            Toast.makeText(this, R.string.failed_delete_image, Toast.LENGTH_LONG).show();
+            return;
+        }
+        try {
+            while (c.moveToNext()) {
+                // We found the ID. Deleting the item via the content provider will also remove the file
+                long id = c.getLong(c.getColumnIndexOrThrow(IMAGE_ID));
+                Uri deleteUri = ContentUris.withAppendedId(IMAGE_STORE_URI, id);
+                contentResolver.delete(deleteUri, null, null);
+            }
+        }
+        finally {
+            c.close();
+        }
+    }
+
+    // Create a string containing placeholder for SQL query parameters
+    private String makeSQLPlaceholders(int len) {
+        if (len < 1) {
+            // It will lead to an invalid query anyway ..
+            throw new RuntimeException("No placeholders");
+        } else {
+            StringBuilder sb = new StringBuilder(len * 2 - 1);
+            sb.append("?");
+            for (int i = 1; i < len; i++) {
+                sb.append(",?");
+            }
+            return sb.toString();
+        }
     }
 
     @Override
@@ -205,7 +291,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
 

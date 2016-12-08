@@ -6,22 +6,32 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.AppCompatImageView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 /**
  * Fragment to display an image full screen
  */
-public class ImageViewerFragment extends Fragment {
+public class ImageViewerFragment extends Fragment implements ActionMode.Callback {
 
     public static final String ARG_IMAGE_PATH = "com.pbo.apps.dailyselfie.imageviewer.photopath";
     AppCompatImageView mImageView;
     private String mImagePath;
     private OnCropImageListener mCropImageCallback;
+    private OnEditImageListener mEditImageCallback;
+    private OnDeleteImageListener mDeleteImageCallback;
+    private ActionMode mActionMode;
 
-    public ImageViewerFragment() { }
+    public ImageViewerFragment() {
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,22 +49,40 @@ public class ImageViewerFragment extends Fragment {
         // the callback interface. If not, it throws an exception
         try {
             mCropImageCallback = (OnCropImageListener) context;
+            mEditImageCallback = (OnEditImageListener) context;
+            mDeleteImageCallback = (OnDeleteImageListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
-                    + " must implement OnCropImageListener");
+                    + " must implement OnCropImageListener, OnEditImageListener and OnDeleteImageListener");
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                              Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.image_viewer_layout, container, false);
 
         mImageView = (AppCompatImageView) view.findViewById(R.id.image_viewer_view);
         displayImage();
 
-
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mActionMode == null) {
+            mActionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(this);
+        }
+        ((MainActivity) getActivity()).hideCamera();
+    }
+
+    @Override
+    public void onPause() {
+        if (mActionMode != null) {
+            mActionMode.finish();
+        }
+        super.onPause();
     }
 
     // Public function to allow the activity to force a redraw of the image
@@ -82,16 +110,61 @@ public class ImageViewerFragment extends Fragment {
 
                 if (bitmap != null) {
                     mImageView.setImageBitmap(bitmap);
-                    mImageView.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View view) {
-                            mCropImageCallback.dispatchCropPictureIntent(Uri.parse(mImagePath));
-                            return true;
-                        }
-                    });
                 }
             }
         });
     }
 
+    // Called when the action mode is created; startActionMode() was called
+    @Override
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        // Inflate a menu resource providing context menu items
+        MenuInflater inflater = mode.getMenuInflater();
+        inflater.inflate(R.menu.image_viewer_context_menu, menu);
+        return true;
+    }
+
+    // Called each time the action mode is shown. Always called after onCreateActionMode, but
+    // may be called multiple times if the mode is invalidated.
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        mode.setTitle(R.string.view_image_action_title);
+        return false; // Return false if nothing is done
+    }
+
+    // Called when the user selects a contextual menu item
+    @Override
+    public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_crop:
+                mCropImageCallback.dispatchCropPictureIntent(Uri.parse(mImagePath));
+                return true;
+            case R.id.action_edit:
+                mEditImageCallback.dispatchEditPictureIntent(Uri.parse(mImagePath));
+                return true;
+            case R.id.action_delete:
+                final FragmentManager fragMan = getActivity().getSupportFragmentManager();
+                mDeleteImageCallback.deleteImagesDialog(new String[]{Uri.parse(mImagePath).getPath()},
+                        new OnCompleteImageDeleteListener() {
+                            @Override
+                            public void afterImageDelete() {
+                                // If we're in the image viewer fragment and we've deleted it, then let's get back to the gallery
+                                if (fragMan != null && fragMan.findFragmentByTag(MainActivity.IMAGE_VIEWER_FRAGMENT_TAG) != null) {
+                                    fragMan.popBackStack();
+                                }
+                            }
+                        });
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    // Called when the user exits the action mode
+    // In this case, the fragment is an action mode in itself, so on exiting the action mode we exit the fragment
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+        mActionMode = null;
+        // TODO: Figure out how to exit the fragment here, but only if we're being destroyed due to the back button
+    }
 }

@@ -2,38 +2,39 @@ package com.pbo.apps.dailyselfie;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.provider.MediaStore;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Fragment class to handle displaying a grid of images
  */
-public class GalleryFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    public static final int IMAGE_LOADER_ID = 0;
-    public static final String[] IMAGE_FILE_PROJECTION = { MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID };
-    public static final String IMAGE_SORT_ORDER = MediaStore.Images.Media.DATE_TAKEN + " DESC";
-    public static final String IMAGE_DATA = MediaStore.Images.Media.DATA;
-    public static final String IMAGE_ID = MediaStore.Images.Media._ID;
+public class GalleryFragment extends Fragment
+        implements LoaderManager.LoaderCallbacks<Cursor>, ActionMode.Callback {
+    static final String GALLERY_SELECTED_ITEMS_TAG = "com.pbo.apps.dailyselfie.galleryselecteditems";
 
     RecyclerView mGalleryView;
     GalleryAdapter mGalleryAdapter;
-
     CursorLoader mGalleryItemLoader;
     private OnViewImageListener mViewImageCallback;
-    private OnEditImageListener mEditImageCallback;
+    private OnDeleteImageListener mDeleteImageCallback;
 
     public GalleryFragment() { }
 
@@ -51,10 +52,10 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
         // the callback interface. If not, it throws an exception
         try {
             mViewImageCallback = (OnViewImageListener) context;
-            mEditImageCallback = (OnEditImageListener) context;
+            mDeleteImageCallback = (OnDeleteImageListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
-                    + " must implement OnViewImageListener and OnEditImageListener");
+                    + " must implement OnViewImageListener and OnDeleteImageListener");
         }
     }
 
@@ -67,13 +68,32 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
 
         mGalleryView.setLayoutManager(new GridLayoutManager(getContext(),
                 getResources().getInteger(R.integer.grid_layout_items_per_row)));
-        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback, mEditImageCallback);
+        ArrayList<Integer> selectedItems = null;
+        if (savedInstanceState != null && savedInstanceState.containsKey(GALLERY_SELECTED_ITEMS_TAG)) {
+            selectedItems = savedInstanceState.getIntegerArrayList(GALLERY_SELECTED_ITEMS_TAG);
+        }
+        mGalleryAdapter = new GalleryAdapter(getContext(), mViewImageCallback, this, selectedItems);
         mGalleryView.setAdapter(mGalleryAdapter);
         mGalleryView.setItemAnimator(new DefaultItemAnimator());
 
-        getLoaderManager().initLoader(IMAGE_LOADER_ID, null, this);
+        getLoaderManager().initLoader(MainActivity.IMAGE_LOADER_ID, null, this);
 
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        if (isInActionMode()) {
+            savedInstanceState.putIntegerArrayList(GALLERY_SELECTED_ITEMS_TAG, mGalleryAdapter.getSelectedItems());
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!isInActionMode()) {
+            ((MainActivity) getActivity()).showCamera();
+        }
     }
 
     @Override
@@ -85,13 +105,13 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
             Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
         }
         if (!imagesDirectory.isEmpty()) {
-            String selection = IMAGE_DATA + " LIKE '" + imagesDirectory + "%'";
+            String selection = MainActivity.IMAGE_DATA + " LIKE '" + imagesDirectory + "%'";
             mGalleryItemLoader = new CursorLoader(getContext(),
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    IMAGE_FILE_PROJECTION,
+                    MainActivity.IMAGE_STORE_URI,
+                    MainActivity.IMAGE_FILE_PROJECTION,
                     selection,
                     null,
-                    IMAGE_SORT_ORDER);
+                    MainActivity.IMAGE_SORT_ORDER);
         }
 
         return mGalleryItemLoader;
@@ -105,5 +125,66 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mGalleryAdapter.swapCursor(null);
+    }
+
+    // Called when the action mode is created; startActionMode() was called
+    @Override
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        // Inflate a menu resource providing context menu items
+        MenuInflater inflater = mode.getMenuInflater();
+        inflater.inflate(R.menu.gallery_item_select_menu, menu);
+        return true;
+        }
+
+    // Called each time the action mode is shown. Always called after onCreateActionMode, but
+    // may be called multiple times if the mode is invalidated.
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        ((MainActivity) getActivity()).hideCamera();
+        return false; // Return false if nothing is done
+    }
+
+    // Called when the user selects a contextual menu item
+    @Override
+    public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_delete:
+                deleteGalleryItems(mode);
+                return true;
+
+            case R.id.action_select_all:
+                mGalleryAdapter.selectAll(mGalleryView);
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    // Delete all selected items in the gallery
+    void deleteGalleryItems(final ActionMode mode) {
+        List<Integer> selectedItemPositions = mGalleryAdapter.getSelectedItems();
+        mDeleteImageCallback.deleteImagesDialog(mGalleryAdapter.getImagePaths(selectedItemPositions),
+                new OnCompleteImageDeleteListener() {
+                    @Override
+                    public void afterImageDelete() {
+                        if (mode != null) {
+                            mode.finish();
+                        }
+                    }
+                });
+    }
+
+    // Called when the user exits the action mode
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+        mGalleryAdapter.mActionMode = null;
+        mGalleryAdapter.clearSelections(mGalleryView);
+        ((MainActivity) getActivity()).showCamera();
+    }
+
+    // Check if action mode has been started on the gallery
+    private boolean isInActionMode() {
+        return mGalleryAdapter != null && mGalleryAdapter.mActionMode != null;
     }
 }

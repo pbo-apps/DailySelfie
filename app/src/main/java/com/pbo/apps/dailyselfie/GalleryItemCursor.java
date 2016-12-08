@@ -14,8 +14,8 @@ class GalleryItemCursor extends CursorWrapper {
         super(cursor);
 
         if (cursor != null) {
-            CURSOR_INDEX_PATH = cursor.getColumnIndex(GalleryFragment.IMAGE_DATA);
-            CURSOR_INDEX_ID = cursor.getColumnIndex(GalleryFragment.IMAGE_ID);
+            CURSOR_INDEX_PATH = cursor.getColumnIndex(MainActivity.IMAGE_DATA);
+            CURSOR_INDEX_ID = cursor.getColumnIndex(MainActivity.IMAGE_ID);
         }
     }
 
