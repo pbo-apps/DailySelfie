@@ -76,6 +76,10 @@ public class MainActivity extends AppCompatActivity
         });
 
         initialiseFragments(savedInstanceState);
+
+        if (mSelfieReminder == null) {
+            mSelfieReminder = new SelfieReminder(this);
+        }
     }
 
     // Set up the fragments to use in the main content view

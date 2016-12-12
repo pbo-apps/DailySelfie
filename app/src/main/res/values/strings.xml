@@ -15,4 +15,5 @@
     <string name="view_image_action_title">Edit Selfie</string>
     <string name="action_cancel_alarm">Cancel reminder</string>
     <string name="action_enable_alarm">Set reminder</string>
+    <string name="notification_text">It\'s time to take your next selfie!</string>
 </resources>
