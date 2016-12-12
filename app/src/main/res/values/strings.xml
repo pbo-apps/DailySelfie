@@ -13,4 +13,6 @@
     <string name="action_edit">Edit</string>
     <string name="failed_delete_image">Could not find image to delete</string>
     <string name="view_image_action_title">Edit Selfie</string>
+    <string name="action_cancel_alarm">Cancel reminder</string>
+    <string name="action_enable_alarm">Set reminder</string>
 </resources>
