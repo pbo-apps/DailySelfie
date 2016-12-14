@@ -36,6 +36,9 @@ public class MainActivity extends AppCompatActivity
     private static final String CURRENT_PHOTO_URI_KEY = "mCurrentPhotoUri";
     private static final boolean DEVELOPER_MODE = true;
 
+    public static final String EXTERNAL_ACTION_SET_REMINDER = "com.pbo.apps.dailyselfie.ext_action_set_reminder";
+    public static final String EXTERNAL_ACTION_TAKE_SELFIE = "com.pbo.apps.dailyselfie.ext_action_take_selfie";
+
     static final String GALLERY_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.galleryfragment";
     GalleryFragment mGalleryFragment;
     static final String IMAGE_VIEWER_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.imageviewerfragment";
@@ -77,8 +80,28 @@ public class MainActivity extends AppCompatActivity
 
         initialiseFragments(savedInstanceState);
 
+        // Create our reminder helper if it doesn't exist
         if (mSelfieReminder == null) {
             mSelfieReminder = new SelfieReminder(this);
+        }
+
+        // Get the intent that started this activity
+        resolveCallingIntent();
+    }
+
+    // Check if we've been started with an action, and carry out the action if so
+    private void resolveCallingIntent() {
+        Intent intent = getIntent();
+        if (intent == null || intent.getAction() == null) {
+            return;
+        }
+        switch (intent.getAction()) {
+            case EXTERNAL_ACTION_TAKE_SELFIE:
+                dispatchTakePictureIntent();
+                break;
+
+            default:
+                break;
         }
     }
 

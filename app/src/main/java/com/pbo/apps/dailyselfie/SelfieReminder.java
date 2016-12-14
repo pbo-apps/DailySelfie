@@ -19,8 +19,8 @@ class SelfieReminder {
     SelfieReminder(Context context) {
         mAlarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, SelfieReminderReceiver.class);
+        intent.setAction(MainActivity.EXTERNAL_ACTION_SET_REMINDER);
         mAlarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-
     }
 
     void start() {
