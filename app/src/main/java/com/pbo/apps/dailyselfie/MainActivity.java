@@ -344,20 +344,20 @@ public class MainActivity extends AppCompatActivity
             startSettings();
             return true;
         }
-        else if (id == R.id.action_enable_alarm) {
-            if (mSelfieReminder == null) {
-                mSelfieReminder = new SelfieReminder(this);
-            }
-            mSelfieReminder.start();
-            return true;
-        }
-        else if (id == R.id.action_cancel_alarm) {
-            if (mSelfieReminder != null) {
-                mSelfieReminder.cancel();
-            }
-            return true;
-        }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    void cancelReminder() {
+        if (mSelfieReminder != null) {
+            mSelfieReminder.cancel();
+        }
+    }
+
+    void setReminder() {
+        if (mSelfieReminder == null) {
+            mSelfieReminder = new SelfieReminder(this);
+        }
+        mSelfieReminder.start();
     }
 }
