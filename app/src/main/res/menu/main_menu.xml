@@ -4,14 +4,7 @@
     tools:context="com.pbo.apps.dailyselfie.MainActivity" >
     <item android:id="@+id/action_settings"
         android:title="@string/action_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
         android:orderInCategory="100"
-        app:showAsAction="never" />
-    <item android:id="@+id/action_enable_alarm"
-        android:title="@string/action_enable_alarm"
-        android:orderInCategory="200"
-        app:showAsAction="never" />
-    <item android:id="@+id/action_cancel_alarm"
-        android:title="@string/action_cancel_alarm"
-        android:orderInCategory="300"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom" />
 </menu>
