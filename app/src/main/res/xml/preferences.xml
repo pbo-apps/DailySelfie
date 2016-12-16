@@ -16,11 +16,19 @@
             android:defaultValue="true" />
         <ListPreference
             android:dependency="pref_reminder"
+            android:key="pref_reminder_initial_time"
+            android:title="Initial time"
+            android:dialogTitle="Reminder initial time"
+            android:entries="@array/reminderInitialTimeLabels"
+            android:entryValues="@array/reminderInitialTimeValues"
+            android:defaultValue="18" />
+        <ListPreference
+            android:dependency="pref_reminder"
             android:key="pref_reminder_interval"
-            android:title="Interval"
-            android:dialogTitle="Reminder interval"
+            android:title="Repeat reminder"
+            android:dialogTitle="Repeat reminder"
             android:entries="@array/reminderIntervalLabels"
             android:entryValues="@array/reminderIntervalValues"
-            android:defaultValue="2" />
+            android:defaultValue="1440" />
     </PreferenceCategory>
 </PreferenceScreen>
