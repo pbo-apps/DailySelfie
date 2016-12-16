@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Selfie reminder"
+        android:key="pref_cat_selfie_reminder">
+        <CheckBoxPreference
+            android:key="pref_reminder"
+            android:title="Use reminder"
+            android:summary="Switch reminders on/off"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:dependency="pref_reminder"
+            android:key="pref_reminder_wake_device"
+            android:title="Wake device"
+            android:summary="Sound notification even if device is sleeping"
+            android:defaultValue="true" />
+        <ListPreference
+            android:dependency="pref_reminder"
+            android:key="pref_reminder_initial_time"
+            android:title="Initial time"
+            android:dialogTitle="Reminder initial time"
+            android:entries="@array/reminderInitialTimeLabels"
+            android:entryValues="@array/reminderInitialTimeValues"
+            android:defaultValue="-1" />
+        <ListPreference
+            android:dependency="pref_reminder"
+            android:key="pref_reminder_interval"
+            android:title="Repeat reminder"
+            android:dialogTitle="Repeat reminder"
+            android:entries="@array/reminderIntervalLabels"
+            android:entryValues="@array/reminderIntervalValues"
+            android:defaultValue="2" />
+    </PreferenceCategory>
+</PreferenceScreen>

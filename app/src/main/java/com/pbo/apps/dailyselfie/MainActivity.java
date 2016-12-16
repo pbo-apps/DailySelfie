@@ -36,6 +36,9 @@ public class MainActivity extends AppCompatActivity
     private static final String CURRENT_PHOTO_URI_KEY = "mCurrentPhotoUri";
     private static final boolean DEVELOPER_MODE = true;
 
+    public static final String EXTERNAL_ACTION_SET_REMINDER = "com.pbo.apps.dailyselfie.ext_action_set_reminder";
+    public static final String EXTERNAL_ACTION_TAKE_SELFIE = "com.pbo.apps.dailyselfie.ext_action_take_selfie";
+
     static final String GALLERY_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.galleryfragment";
     GalleryFragment mGalleryFragment;
     static final String IMAGE_VIEWER_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.imageviewerfragment";
@@ -44,6 +47,7 @@ public class MainActivity extends AppCompatActivity
     private String mCurrentPhotoPath;
     private Uri mCurrentPhotoUri;
     private FloatingActionButton mFabCamera;
+    private SelfieReminder mSelfieReminder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +79,32 @@ public class MainActivity extends AppCompatActivity
         });
 
         initialiseFragments(savedInstanceState);
+
+        // Create our reminder helper if it doesn't exist
+        if (mSelfieReminder == null) {
+            mSelfieReminder = new SelfieReminder(this);
+        }
+
+        // Get the intent that started this activity
+        resolveCallingIntent();
+    }
+
+    // Check if we've been started with an action, and carry out the action if so
+    private void resolveCallingIntent() {
+        Intent intent = getIntent();
+        if (intent == null || intent.getAction() == null) {
+            return;
+        }
+        switch (intent.getAction()) {
+            case EXTERNAL_ACTION_TAKE_SELFIE:
+                dispatchTakePictureIntent();
+                // Reset action now that we've handled it
+                intent.setAction("android.intent.action.MAIN");
+                break;
+
+            default:
+                break;
+        }
     }
 
     // Set up the fragments to use in the main content view
@@ -263,6 +293,14 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private void startSettings() {
+        // Display the settings fragment as the main content.
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new SettingsFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
@@ -302,11 +340,24 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startSettings();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    void cancelReminder() {
+        if (mSelfieReminder != null) {
+            mSelfieReminder.cancel();
+        }
+    }
+
+    void setReminder() {
+        if (mSelfieReminder == null) {
+            mSelfieReminder = new SelfieReminder(this);
+        }
+        mSelfieReminder.start();
     }
 }
