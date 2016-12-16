@@ -77,14 +77,6 @@ public class ImageViewerFragment extends Fragment implements ActionMode.Callback
         ((MainActivity) getActivity()).hideCamera();
     }
 
-    @Override
-    public void onPause() {
-        if (mActionMode != null) {
-            mActionMode.finish();
-        }
-        super.onPause();
-    }
-
     // Public function to allow the activity to force a redraw of the image
     public void refreshImage() {
         displayImage();
@@ -143,14 +135,13 @@ public class ImageViewerFragment extends Fragment implements ActionMode.Callback
                 mEditImageCallback.dispatchEditPictureIntent(Uri.parse(mImagePath));
                 return true;
             case R.id.action_delete:
-                final FragmentManager fragMan = getActivity().getSupportFragmentManager();
                 mDeleteImageCallback.deleteImagesDialog(new String[]{Uri.parse(mImagePath).getPath()},
                         new OnCompleteImageDeleteListener() {
                             @Override
                             public void afterImageDelete() {
-                                // If we're in the image viewer fragment and we've deleted it, then let's get back to the gallery
-                                if (fragMan != null && fragMan.findFragmentByTag(MainActivity.IMAGE_VIEWER_FRAGMENT_TAG) != null) {
-                                    fragMan.popBackStack();
+                                // If we're in the image viewer fragment and we've deleted it, then let's end the action (which will also pop us out of the fragment!)
+                                if (mActionMode != null) {
+                                    mActionMode.finish();
                                 }
                             }
                         });
@@ -165,6 +156,9 @@ public class ImageViewerFragment extends Fragment implements ActionMode.Callback
     @Override
     public void onDestroyActionMode(ActionMode mode) {
         mActionMode = null;
-        // TODO: Figure out how to exit the fragment here, but only if we're being destroyed due to the back button
+        FragmentManager fragMan = getActivity().getSupportFragmentManager();
+        if (fragMan.findFragmentByTag(MainActivity.IMAGE_VIEWER_FRAGMENT_TAG) != null) {
+            fragMan.popBackStack();
+        }
     }
 }
