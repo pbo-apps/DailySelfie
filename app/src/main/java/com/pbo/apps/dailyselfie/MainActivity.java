@@ -98,6 +98,8 @@ public class MainActivity extends AppCompatActivity
         switch (intent.getAction()) {
             case EXTERNAL_ACTION_TAKE_SELFIE:
                 dispatchTakePictureIntent();
+                // Reset action now that we've handled it
+                intent.setAction("android.intent.action.MAIN");
                 break;
 
             default:

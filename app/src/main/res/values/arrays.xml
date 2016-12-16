@@ -31,6 +31,7 @@
         <item>10080</item>
     </string-array>
     <string-array name="reminderInitialTimeLabels">
+        <item>Now</item>
         <item>6 am</item>
         <item>9 am</item>
         <item>12 pm</item>
@@ -39,6 +40,7 @@
         <item>9 pm</item>
     </string-array>
     <string-array name="reminderInitialTimeValues">
+        <item>-1</item>
         <item>6</item>
         <item>9</item>
         <item>12</item>

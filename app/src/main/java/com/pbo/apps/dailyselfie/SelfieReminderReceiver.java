@@ -12,7 +12,6 @@ import android.support.v4.app.NotificationCompat;
  */
 
 public class SelfieReminderReceiver extends BroadcastReceiver {
-    private static final int TAKE_SELFIE_NOTIFICATION_ID = 1;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -61,6 +60,6 @@ public class SelfieReminderReceiver extends BroadcastReceiver {
                                 context.getString(R.string.action_title_take_selfie), takeSelfiePendingIntent);
 
         ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE))
-                .notify(TAKE_SELFIE_NOTIFICATION_ID, builder.build());
+                .notify(SelfieReminder.TAKE_SELFIE_NOTIFICATION_ID, builder.build());
     }
 }

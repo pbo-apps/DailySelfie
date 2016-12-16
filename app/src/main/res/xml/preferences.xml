@@ -21,7 +21,7 @@
             android:dialogTitle="Reminder initial time"
             android:entries="@array/reminderInitialTimeLabels"
             android:entryValues="@array/reminderInitialTimeValues"
-            android:defaultValue="18" />
+            android:defaultValue="-1" />
         <ListPreference
             android:dependency="pref_reminder"
             android:key="pref_reminder_interval"
@@ -29,6 +29,6 @@
             android:dialogTitle="Repeat reminder"
             android:entries="@array/reminderIntervalLabels"
             android:entryValues="@array/reminderIntervalValues"
-            android:defaultValue="1440" />
+            android:defaultValue="2" />
     </PreferenceCategory>
 </PreferenceScreen>
