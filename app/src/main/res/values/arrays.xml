@@ -1,20 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="reminderIntervalLabels">
-        <item>Never</item>
-        <item>1 minute</item>
-        <item>2 minutes</item>
-        <item>5 minutes</item>
-        <item>10 minutes</item>
-        <item>30 minutes</item>
-        <item>1 hour</item>
-        <item>2 hours</item>
-        <item>6 hours</item>
-        <item>12 hours</item>
-        <item>1 day</item>
-        <item>2 days</item>
-        <item>1 week</item>
-    </string-array>
     <string-array name="reminderIntervalValues">
         <item>0</item>
         <item>1</item>
@@ -47,5 +32,20 @@
         <item>15</item>
         <item>18</item>
         <item>21</item>
+    </string-array>
+    <string-array name="reminderIntervalLabels">
+        <item>Never</item>
+        <item>1 minute</item>
+        <item>2 minutes</item>
+        <item>5 minutes</item>
+        <item>10 minutes</item>
+        <item>30 minutes</item>
+        <item>1 hour</item>
+        <item>2 hours</item>
+        <item>6 hours</item>
+        <item>12 hours</item>
+        <item>1 day</item>
+        <item>2 days</item>
+        <item>1 week</item>
     </string-array>
 </resources>

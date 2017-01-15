@@ -11,6 +11,7 @@ import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -43,6 +44,8 @@ public class MainActivity extends AppCompatActivity
     GalleryFragment mGalleryFragment;
     static final String IMAGE_VIEWER_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.imageviewerfragment";
     ImageViewerFragment mImageViewerFragment;
+    static final String SETTINGS_FRAGMENT_TAG = "com.pbo.apps.dailyselfie.settingsfragment";
+    SettingsFragment mSettingsFragment;
 
     private String mCurrentPhotoPath;
     private Uri mCurrentPhotoUri;
@@ -293,12 +296,21 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void startSettings() {
-        // Display the settings fragment as the main content.
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new SettingsFragment())
-                .addToBackStack(null)
-                .commit();
+    private void toggleSettings() {
+        FragmentManager fragMan = getSupportFragmentManager();
+        if (fragMan.findFragmentByTag(SETTINGS_FRAGMENT_TAG) != null) {
+            // Exit the settings fragment if already started
+            fragMan.popBackStack();
+        } else {
+            // Display the settings fragment as the main content.
+            if (mSettingsFragment == null) {
+                mSettingsFragment = new SettingsFragment();
+            }
+            fragMan.beginTransaction()
+                    .replace(R.id.fragment_container, mSettingsFragment, SETTINGS_FRAGMENT_TAG)
+                    .addToBackStack(null)
+                    .commit();
+        }
     }
 
     @Override
@@ -341,7 +353,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.action_settings) {
-            startSettings();
+            toggleSettings();
             return true;
         }
 
