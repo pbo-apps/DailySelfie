@@ -11,6 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.mockito.Matchers.longThat;
 import static org.mockito.Mockito.when;
 
 /**
@@ -69,18 +70,23 @@ public class GalleryItemCursorTest {
     }
 
     @Test
-    public void getImagePath() throws Exception {
+    public void getImageIDWithNullCursorReturnsZero() {
+        GalleryItemCursor galleryItemCursor = new GalleryItemCursor(null);
 
+        assertThat(galleryItemCursor.getImageID(), is((equalTo((long) 0))));
     }
 
     @Test
-    public void getImageID() throws Exception {
+    public void getImageIDWithLoadedCursorReturnsCorrectImageID() {
+        final int cursorIndexID = 1;
+        when(mMockCursor.getColumnIndex(MainActivity.IMAGE_ID))
+                .thenReturn(cursorIndexID);
+        final String imageID = "42";
+        when(mMockCursor.getString(cursorIndexID))
+                .thenReturn(imageID);
+        GalleryItemCursor galleryItemCursor = new GalleryItemCursor(mMockCursor);
 
-    }
-
-    @Test
-    public void getCount() throws Exception {
-
+        assertThat(galleryItemCursor.getImageID(), is(equalTo(Long.parseLong(imageID))));
     }
 
 }
