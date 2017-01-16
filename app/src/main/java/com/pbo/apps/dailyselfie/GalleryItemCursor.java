@@ -23,7 +23,7 @@ class GalleryItemCursor {
 
     String getImagePath() {
         return mCursor == null ?
-                null : ImageFileHelper.getFilePath(mCursor.getString(CURSOR_INDEX_PATH));
+                null : mCursor.getString(CURSOR_INDEX_PATH);
     }
 
     long getImageID() throws NumberFormatException {

@@ -62,7 +62,7 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         mCursor.moveToPosition(position);
 
         // Find the gallery item
-        final String photoPath = mCursor.getImagePath();
+        final String photoPath = ImageFileHelper.getFilePath(mCursor.getImagePath());
         long photoID;
         try {
             photoID = mCursor.getImageID();
@@ -207,7 +207,7 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     }
 
     // Get the number of items currently selected
-    int getSelectedItemCount() {
+    private int getSelectedItemCount() {
         return mSelectedItems.size();
     }
 
@@ -227,7 +227,7 @@ class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
         // for loop to delete items
         for (int i = positions.size() - 1; i >= 0; i--) {
             mCursor.moveToPosition(positions.get(i));
-            Uri photoUri = Uri.parse(mCursor.getImagePath());
+            Uri photoUri = Uri.parse(ImageFileHelper.getFilePath(mCursor.getImagePath()));
             photoPaths.add(photoUri.getPath());
         }
         return photoPaths.toArray(new String[photoPaths.size()]);
